@@ -4,12 +4,14 @@ import math
 import socket
 from datetime import datetime
 
+SIM_RATE = 1.0  # HZ
+
 class BoatState:
     def __init__(self):
         # Starting position off Nova Scotia coast
         self.latitude = 44.6476
         self.longitude = -63.5728
-        self.speed = 10.0  # knots - adjusted to a more realistic sailing speed
+        self.speed = 100.0  # knots - adjusted to a more realistic sailing speed
         self.heading = 0.0
         
         # Define waypoints for the trajectory
@@ -39,8 +41,14 @@ class BoatState:
             target = self.waypoints[self.current_waypoint]
         
         # Calculate movement vector
-        # Convert knots to degrees per update (1 knot ≈ 0.000277778 degrees/update at equator)
-        move_speed = self.speed * 0.000277778  
+        # Convert knots to degrees per second
+        # 1 knot = 1 nautical mile per hour = 1.852 km/h
+        # 1 degree of latitude = 111.32 km (approximately)
+        # So 1 knot ≈ (1.852 / 111.32) = 0.0166 degrees per hour
+        # For per second: 0.0166 / 3600 = 4.63e-6 degrees/second
+        dt = 1/SIM_RATE  # our simulation timestep in seconds
+        move_speed = self.speed * 4.63e-6 * dt
+        
         dx = target[0] - self.latitude
         dy = target[1] - self.longitude
         dist = math.sqrt(dx**2 + dy**2)
@@ -150,7 +158,7 @@ class BoatSimulator:
                 }
             })
             
-            time.sleep(1.0)  # Update every second
+            time.sleep(1/SIM_RATE)  # Update every second
 
     def start(self):
         if not self.running:
