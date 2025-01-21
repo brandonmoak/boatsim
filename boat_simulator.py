@@ -6,6 +6,11 @@ from datetime import datetime
 
 SIM_RATE = 1.0  # HZ
 
+# Network configuration
+UDP_IP = "127.0.0.1"  # Default IP address
+NMEA_0183_PORT = 10110 # Port for NMEA 0183 messages
+NMEA_2000_PORT = 10111 # Port for NMEA 2000 messages
+
 class BoatState:
     def __init__(self):
         # Starting position off Nova Scotia coast
@@ -116,10 +121,6 @@ class BoatSimulator:
         self.nmea_0183_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.nmea_2000_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
-        # Define ports
-        self.NMEA_0183_PORT = 60001
-        self.NMEA_2000_PORT = 60002
-        self.UDP_IP = "127.0.0.1"  # localhost
 
     def simulation_loop(self):
         while self.running:
@@ -134,17 +135,17 @@ class BoatSimulator:
             nmea_0183 = self.boat_state.generate_nmea_0183()
             self.nmea_0183_socket.sendto(
                 nmea_0183.encode(), 
-                (self.UDP_IP, self.NMEA_0183_PORT)
+                (UDP_IP, NMEA_0183_PORT)
             )
-            print(f"NMEA 0183 (Port {self.NMEA_0183_PORT}): {nmea_0183.strip()}")
+            print(f"NMEA 0183 (Port {NMEA_0183_PORT}): {nmea_0183.strip()}")
             
             # Generate and send NMEA 2000 data
             nmea_2000 = self.boat_state.generate_nmea_2000()
             self.nmea_2000_socket.sendto(
                 nmea_2000, 
-                (self.UDP_IP, self.NMEA_2000_PORT)
+                (UDP_IP, NMEA_2000_PORT)
             )
-            print(f"NMEA 2000 (Port {self.NMEA_2000_PORT}): {nmea_2000.hex()}")
+            print(f"NMEA 2000 (Port {NMEA_2000_PORT}): {nmea_2000.hex()}")
             
             # Updated websocket emission with arrow coordinates
             self.socketio.emit('position_update', {

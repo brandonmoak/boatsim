@@ -3,7 +3,8 @@ import binascii
 
 def listen_nmea(port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(('', port))  # Bind to all interfaces
+    ip = ''
+    sock.bind((ip, port))  # Bind to all interfaces
     print(f"Listening for NMEA data on port {port}...")
     
     while True:
