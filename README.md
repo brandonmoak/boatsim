@@ -38,4 +38,47 @@
 
 ## License
 
-This project is open-source and available under the MIT License. 
+This project is open-source and available under the MIT License.
+
+## Installation (Windows)
+
+1. Install Python 3.8 or higher:
+   - Download the latest Python installer from [python.org](https://www.python.org/downloads/)
+   - Run the installer and ensure you check "Add Python to PATH"
+   - Verify installation by opening Command Prompt and typing: `python --version`
+
+2. Clone the repository:
+   ```cmd
+   git clone https://github.com/brandonmoak/boatsim.git
+   cd boatsim
+   ```
+
+3. Create and activate a virtual environment:
+   ```cmd
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+
+4. Install required packages:
+   ```cmd
+   pip install -r requirement.txt
+   ```
+
+5. Configure Windows Firewall (if needed):
+   - The simulator needs to allow incoming network traffic on specific ports:
+     - Port 60001: Receives NMEA 0183 data (boat position, speed, etc.)
+     - Port 60002: Receives NMEA 2000 data (engine data, weather data, etc.)
+     - Port 5001: Allows web browser access to the simulator interface
+   - If you're having connection issues:
+     1. Open "Windows Defender Firewall with Advanced Security"
+     2. Select "Inbound Rules" → "New Rule"
+     3. Choose "Port" → "UDP" for ports 60001 and 60002
+     4. Choose "Port" → "TCP" for port 5001
+     5. Allow the connection
+     
+   Note: Inbound rules allow external programs (like marine navigation software) to connect to your simulator. If you're just running the simulator locally, you might not need to configure the firewall.
+
+6. Start the application:
+   ```cmd
+   python app.py
+   ``` 
