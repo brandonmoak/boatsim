@@ -1,18 +1,14 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_socketio import SocketIO
-import threading
-import time
-from boat_simulator import BoatState, BoatSimulator
+from boat_simulator import BoatSimulator
+from flask_cors import CORS
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Global simulator instance
 simulator = None
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @socketio.on('start_simulation')
 def handle_start():
@@ -27,6 +23,15 @@ def handle_stop():
     if simulator:
         simulator.stop()
         simulator = None
+
+@socketio.on('update_pgn')
+def handle_pgn_update(data):
+    global simulator
+    if simulator:
+        pgn_id = data.get('pgn_id')
+        parameter = data.get('parameter')
+        value = data.get('value')
+        simulator.boat_state.update_pgn_value(pgn_id, parameter, value)
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
