@@ -7,10 +7,11 @@ module.exports = function override(config) {
         '@shared': path.resolve(__dirname, '../shared')
     };
 
-    // Add YAML loader
+    // Simple YAML loader configuration
     config.module.rules.push({
         test: /\.ya?ml$/,
-        use: 'yaml-loader'
+        use: 'yaml-loader',
+        type: 'javascript/auto'  // This tells webpack to not try to parse as JSON
     });
 
     return config;

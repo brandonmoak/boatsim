@@ -12,7 +12,10 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange }) => {
     
     return (
         <div className="pgn-item">
-            <div className="pgn-description">{config.description}</div>
+            <div className="pgn-description">
+                <span className="pgn-number">PGN {config.pgn}</span>
+                {config.description}
+            </div>
             {Object.entries(config.parameters).map(([key, param]) => (
                 <div key={key} className="pgn-value">
                     <label>{param.description}:</label>

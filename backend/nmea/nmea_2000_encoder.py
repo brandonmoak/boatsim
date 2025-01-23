@@ -15,6 +15,16 @@ class NMEA2000Encoder:
     PGN_FLUID_LEVEL = 127505  # Fluid Level
 
     @staticmethod
+    def create_nmea2000_message(pgn, data):
+        """Create a complete NMEA 2000 message"""
+        # Use 4 bytes for PGN instead of 2
+        message = bytearray(4)  # 4 byte header
+        message[0:4] = pgn.to_bytes(4, 'little')  # PGN in header
+        message.extend(data)    # Append data
+        print("message", message)
+        return message
+
+    @staticmethod
     def encode_pgn_127250(heading, deviation=0.0, variation=0.0):
         """Vessel Heading"""
         # Convert to radians and pack as bytes
@@ -35,13 +45,20 @@ class NMEA2000Encoder:
         return data
 
     @staticmethod
-    def encode_pgn_127488(rpm, engine_hours=0, oil_pressure=0, oil_temp=0):
-        """Engine Parameters, Rapid Update"""
+    def encode_pgn_127488(rpm, engine_instance=0, boost_pressure=0, tilt_trim=0):
+        """Engine Parameters, Rapid Update
+        Args:
+            rpm: Engine speed in RPM
+            engine_instance: Engine number (0 for single engine, 0-n for multiple engines)
+            boost_pressure: Turbocharger boost pressure in PSI
+            tilt_trim: Engine tilt/trim position in percent (-100 to 100)
+        """
         data = bytearray(8)
-        data[0:2] = int(rpm * 4).to_bytes(2, 'little')
-        data[2:4] = int(engine_hours).to_bytes(2, 'little')
-        data[4] = int(oil_pressure)
-        data[5] = int(oil_temp)
+        data[0] = engine_instance & 0xFF  # Engine instance
+        data[1:3] = int(rpm * 4).to_bytes(2, 'little')  # Convert to 1/4 RPM units
+        data[3:5] = int(boost_pressure * 6894.76).to_bytes(2, 'little')  # Convert PSI to 100 Pa units
+        data[5] = tilt_trim & 0xFF  # Tilt/trim percentage
+        data[6:8] = (0xFFFF).to_bytes(2, 'little')  # Reserved bits, set to all 1's
         return data
 
     @staticmethod
@@ -90,15 +107,6 @@ class NMEA2000Encoder:
         oil_temp = int(transmission_data.get('oil_temp', 0) + 273.15)
         data[3:5] = oil_temp.to_bytes(2, 'little')
         return data
-
-    @staticmethod
-    def create_nmea2000_message(pgn, data):
-        """Create a complete NMEA 2000 message"""
-        # Use 4 bytes for PGN instead of 2
-        message = bytearray(4)  # 4 byte header
-        message[0:4] = pgn.to_bytes(4, 'little')  # PGN in header
-        message.extend(data)    # Append data
-        return message
 
     @staticmethod
     def encode_pgn_129025(latitude, longitude):

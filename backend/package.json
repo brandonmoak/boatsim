@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/js-yaml": "^4.0.9",
+    "json-loader": "^0.5.7"
+  }
+}

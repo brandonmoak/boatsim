@@ -2,7 +2,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any
 
-PGN_PATH = Path(__file__).parent.parent.parent / 'frontend' / 'public' / 'config' / 'pgn_config.yaml'
+PGN_PATH = Path(__file__).parent.parent.parent / 'frontend' / 'src' / 'config' / 'pgn_config.yaml'
 
 # Singleton storage for config and mapping
 _config = None

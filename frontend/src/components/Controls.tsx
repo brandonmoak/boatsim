@@ -1,29 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { ControlsProps } from '../types';
 
-interface ControlsProps {
-  onStart: () => void;
-  onStop: () => void;
-}
-
-const Controls: React.FC<ControlsProps> = ({ onStart, onStop }) => {
-  const [isRunning, setIsRunning] = useState(false);
-
-  const handleStart = () => {
-    onStart();
-    setIsRunning(true);
-  };
-
-  const handleStop = () => {
-    onStop();
-    setIsRunning(false);
-  };
-
+const Controls: React.FC<ControlsProps> = ({ onStart, onStop, isRunning }) => {
   return (
     <div className="controls">
-      <button onClick={handleStart} disabled={isRunning}>
+      <button 
+        onClick={onStart} 
+        disabled={isRunning}
+      >
         Start Simulation
       </button>
-      <button onClick={handleStop} disabled={!isRunning}>
+      <button 
+        onClick={onStop}
+        disabled={!isRunning}
+      >
         Stop Simulation
       </button>
     </div>

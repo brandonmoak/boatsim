@@ -1,0 +1,25 @@
+waypoints:
+  - name: "Halifax Harbor"
+    lat: 44.6476
+    lon: -63.5728
+  - name: "Eastern Passage"
+    lat: 44.5200
+    lon: -63.4800
+  - name: "Off Lawrencetown"
+    lat: 44.4000
+    lon: -63.3000
+  - name: "Off Sheet Harbor"
+    lat: 44.3500
+    lon: -63.1000
+  - name: "Further Out to Sea"
+    lat: 44.4500
+    lon: -62.9000
+  - name: "Loop Back Point"
+    lat: 44.6000
+    lon: -62.7000
+  - name: "Approaching Coast"
+    lat: 44.7500
+    lon: -63.0000
+  - name: "Halifax Harbor Return"
+    lat: 44.6476
+    lon: -63.5728 

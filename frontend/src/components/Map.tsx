@@ -1,73 +1,50 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { Socket } from 'socket.io-client';
 import 'leaflet/dist/leaflet.css';
+import './Map.css';
+import { BoatPosition } from '../types';
 
 interface MapProps {
-  socket: Socket;
+  boatPosition: BoatPosition;
 }
 
-const Map: React.FC<MapProps> = ({ socket }) => {
+const Map: React.FC<MapProps> = ({ boatPosition }) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.CircleMarker | null>(null);
   const arrowRef = useRef<L.Polyline | null>(null);
 
+  // Helper function to calculate arrow endpoint
+  const calculateArrowEndpoint = (position: BoatPosition, length: number = 0.0005): L.LatLngExpression => {
+    const headingRad = (position.heading * Math.PI) / 180;
+    const endLat = position.lat + length * Math.cos(headingRad);
+    const endLon = position.lon + length * Math.sin(headingRad);
+    return [endLat, endLon] as L.LatLngExpression;
+  };
+
+  // Separate initialization effect
   useEffect(() => {
-    // Initialize map
-    if (!mapRef.current) {
-      mapRef.current = L.map('map').setView([44.6476, -63.5728], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(mapRef.current);
-    }
+    // Initialize map only once
+    mapRef.current = L.map('map').setView([boatPosition.lat, boatPosition.lon], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapRef.current);
 
-    // Handle position updates from socket
-    socket.on('position_update', (data) => {
-      if (!mapRef.current) return;
+    // Create marker only once
+    markerRef.current = L.circleMarker([boatPosition.lat, boatPosition.lon], {
+      radius: 8,
+      className: 'boat-marker',
+    }).addTo(mapRef.current);
 
-      const { lat, lon, heading, arrow_end } = data;
-      console.log('Received position update:', { lat, lon, heading, arrow_end });
+    // Create direction arrow
+    const startPoint: L.LatLngExpression = [boatPosition.lat, boatPosition.lon];
+    const endPoint = calculateArrowEndpoint(boatPosition);
+    arrowRef.current = L.polyline(
+      [startPoint, endPoint],
+      { className: 'direction-arrow' }
+    ).addTo(mapRef.current);
 
-      // Update or create circle marker
-      if (!markerRef.current) {
-        console.log('Creating new marker at:', lat, lon);
-        markerRef.current = L.circleMarker([lat, lon], {
-          radius: 8,  // Made slightly larger
-          color: '#0000FF',
-          fillColor: '#0000FF',
-          fillOpacity: 1,
-          weight: 2,
-          pane: 'overlayPane'  // Ensure it's on the correct pane
-        }).addTo(mapRef.current);
-      } else {
-        console.log('Updating marker position to:', lat, lon);
-        markerRef.current.setLatLng([lat, lon]);
-      }
-
-      // Update or create direction arrow
-      if (arrow_end) {
-        const arrowCoords = [
-          [lat, lon],
-          [arrow_end.lat, arrow_end.lon]
-        ];
-
-        if (!arrowRef.current) {
-          arrowRef.current = L.polyline(arrowCoords, {
-            color: 'red',
-            weight: 2
-          }).addTo(mapRef.current);
-        } else {
-          arrowRef.current.setLatLngs(arrowCoords);
-        }
-      }
-
-      // Center map on boat position
-      mapRef.current.panTo([lat, lon]);
-    });
-
-    // Add cleanup for marker
+    // Cleanup
     return () => {
-      socket.off('position_update');
       if (markerRef.current && mapRef.current) {
         mapRef.current.removeLayer(markerRef.current);
         markerRef.current = null;
@@ -81,9 +58,21 @@ const Map: React.FC<MapProps> = ({ socket }) => {
         mapRef.current = null;
       }
     };
-  }, [socket]);
+  }, []); // Empty dependency array means this runs once on mount
 
-  return <div id="map" style={{ height: '100vh', width: '100%' }} />;
+  // Separate effect for position updates
+  useEffect(() => {
+    if (markerRef.current && mapRef.current && arrowRef.current) {
+      const newPos: L.LatLngExpression = [boatPosition.lat, boatPosition.lon];
+      const arrowEnd = calculateArrowEndpoint(boatPosition);
+      
+      markerRef.current.setLatLng(newPos);
+      arrowRef.current.setLatLngs([newPos, arrowEnd]);
+      mapRef.current.panTo(newPos as L.LatLngExpression);
+    }
+  }, [boatPosition]); // Only run when boatPosition changes
+
+  return <div id="map" />;
 };
 
 export default Map;

@@ -1,0 +1,18 @@
+#map {
+  height: 100vh;
+  width: 100%;
+}
+
+/* Marker styles */
+.boat-marker {
+  stroke: #0066ff;
+  stroke-width: 2;
+  fill: #0066ff;
+  fill-opacity: 0.7;
+}
+
+/* Arrow styles */
+.direction-arrow {
+  stroke: red;
+  stroke-width: 2;
+} 
