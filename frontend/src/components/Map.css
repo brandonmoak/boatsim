@@ -15,4 +15,12 @@
 .direction-arrow {
   stroke: red;
   stroke-width: 2;
+}
+
+.boat-icon {
+  background: none;
+}
+
+.boat-icon div {
+  transition: transform 0.3s ease-in-out;
 } 

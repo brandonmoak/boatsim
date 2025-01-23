@@ -23,7 +23,7 @@ pgns:
 
   engine_parameters:
     pgn: 127488
-    description: "Engine Parameters, Rapid Update"
+    description: "Engine Parameters"
     parameters:
       engine_instance:
         description: "Engine Instance"

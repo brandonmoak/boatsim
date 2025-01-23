@@ -73,7 +73,6 @@ function Simulation({
     if (distance < 0.1) {
       console.log(`Reached waypoint ${currentWaypointIndex}`);
       setCurrentWaypointIndex(currentWaypointIndex + 1);
-      return;
     }
 
     // Speed in knots (hardcoded for now)
@@ -93,6 +92,7 @@ function Simulation({
       heading: bearing // Update heading to point towards waypoint
     };
 
+    console.log('setting boat position:', newPosition);
     setBoatPosition(newPosition);
     setLastUpdate(currentTime);
     onPositionUpdate(newPosition);
