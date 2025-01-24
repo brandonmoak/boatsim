@@ -23,6 +23,7 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
         Object.values(pgnConfig.default_pgns || {}).map((pgn: unknown) => String(pgn))
     );
     const [pgnIntervals, setPgnIntervals] = useState<Record<string, NodeJS.Timeout>>({});
+    const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
 
     useEffect(() => {
         // Initialize socket connection once
@@ -82,6 +83,31 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
 
         console.log('Emitting PGN data:', pgnUpdate);
         socket.emit('update_pgn_2000', [pgnUpdate]);
+    };
+
+    const handleRateChange = (pgnKey: string, newRate: number, config: PGNDefinition) => {
+        // Store the new rate in state
+        setPgnRates(prev => ({
+            ...prev,
+            [pgnKey]: newRate
+        }));
+
+        // Clear existing interval
+        if (pgnIntervals[pgnKey]) {
+            clearInterval(pgnIntervals[pgnKey]);
+        }
+        
+        // Only create new interval if simulating
+        if (isSimulating) {
+            const newInterval = setInterval(() => {
+                emitPGNData(pgnKey, config);
+            }, 1000 / newRate);
+            
+            setPgnIntervals(prev => ({
+                ...prev,
+                [pgnKey]: newInterval
+            }));
+        }
     };
 
     useEffect(() => {
@@ -150,7 +176,8 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
                                     config={definitions[0]}
                                     value={pgnState[pgnKey] || {}}
                                     onChange={(field, value) => handlePGNChange(pgnKey, field, value)}
-                                    rate={definitions[0].TransmissionInterval ? (1000 / definitions[0].TransmissionInterval) : undefined}
+                                    rate={pgnRates[pgnKey] ?? (definitions[0].TransmissionInterval ? (1000 / definitions[0].TransmissionInterval) : undefined)}
+                                    onRateChange={(newRate) => handleRateChange(pgnKey, newRate, definitions[0])}
                                 />
                             </div>
                         );

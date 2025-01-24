@@ -40,9 +40,10 @@ interface PGNItemProps {
     value: Record<string, number>;
     onChange: (field: string, value: string | number) => void;
     rate?: number;
+    onRateChange?: (value: number) => void;
 }
 
-const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate }) => {
+const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRateChange }) => {
     // Add debug log when component renders
 
     const currentValues = value || {};
@@ -65,14 +66,15 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate }) => {
         return (2 ** field.BitLength) - 1;
     };
 
+    const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onRateChange?.(Number(e.target.value));
+    };
+
     return (
         <div className="pgn-item">
             <div className="pgn-description">
                 <span className="pgn-number">PGN {config.PGN}</span>
                 {config.Description}
-                {rate !== undefined && (
-                    <span className="pgn-rate"> [{rate.toFixed(1)}/s]</span>
-                )}
             </div>
             {config.Fields.map((field) => {
                 // Skip Reserved fields
@@ -113,6 +115,20 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate }) => {
                     </div>
                 );
             })}
+            {rate !== undefined && (
+                <div className="pgn-value">
+                    <label>Rate:</label>
+                    <input
+                        type="number"
+                        value={rate || ''}
+                        onChange={handleRateChange}
+                        min={0}
+                        max={100}
+                        step={0.1}
+                    />
+                    <span>Hz</span>
+                </div>
+            )}
         </div>
     );
 };
