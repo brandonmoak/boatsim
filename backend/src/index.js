@@ -13,7 +13,11 @@ const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"]
-  }
+  },
+  // Add connection debugging and control options
+  connectTimeout: 5000,
+  pingTimeout: 20000,
+  pingInterval: 25000
 });
 
 // Create boat simulator instance
@@ -21,15 +25,22 @@ const forwarder = new MessageForwarder(io);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('Client connected');
+  console.log('Client connected', {
+    id: socket.id,
+    transport: socket.conn.transport.name,
+    headers: socket.handshake.headers['user-agent']
+  });
 
   socket.on('update_pgn_2000', (data) => {
     console.log('Received PGN update:', data);
     forwarder.handlePGNUpdate(data);
   });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  socket.on('disconnect', (reason) => {
+    console.log('Client disconnected', {
+      id: socket.id,
+      reason: reason
+    });
   });
 });
 

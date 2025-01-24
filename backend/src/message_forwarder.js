@@ -1,59 +1,10 @@
 import dgram from 'dgram';
 import pkg from '@canboat/canboatjs';
-import { readFile } from 'fs/promises';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { organizePGNs } from './pgn_utils.js';
 const { FromPgn, pgnToActisenseSerialFormat } = pkg;
 
 const NMEA_2000_PORT = 10111;
 const UDP_IP = '127.0.0.1';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-async function organizePGNs() {
-  const res = {};
-  
-  try {
-    // Read JSON files directly
-    const pgnsBasePath = join(__dirname, '../node_modules/@canboat/pgns/canboat.json');
-    const pgnsIKPath = join(__dirname, '../node_modules/@canboat/pgns/pgns-ik.json');
-    const pgnsNGTPath = join(__dirname, '../node_modules/@canboat/pgns/pgns-ngt.json');
-
-    const [pgnsBaseContent, pgnsIKContent, pgnsNGTContent] = await Promise.all([
-      readFile(pgnsBasePath, 'utf8'),
-      readFile(pgnsIKPath, 'utf8'),
-      readFile(pgnsNGTPath, 'utf8')
-    ]);
-
-    const pgnsBase = JSON.parse(pgnsBaseContent);
-    const pgnsIK = JSON.parse(pgnsIKContent);
-    const pgnsNGT = JSON.parse(pgnsNGTContent);
-    
-    console.log('Loaded PGN files successfully');
-    
-    const all = [...pgnsBase.PGNs, ...pgnsIK.PGNs, ...pgnsNGT.PGNs];
-    
-    all.forEach(pgn => {
-      if (!res[pgn.PGN]) {
-        res[pgn.PGN] = [];
-      }
-      res[pgn.PGN].push(pgn);
-      pgn.Fields = Array.isArray(pgn.Fields) ? pgn.Fields : (pgn.Fields ? [pgn.Fields.Field] : []);
-      
-      let reservedCount = 1;
-      pgn.Fields.forEach((field) => {
-        if (field.Name === 'Reserved') {
-          field.Name = `Reserved${reservedCount++}`;
-        }
-      });
-    });
-  } catch (err) {
-    console.error('Error loading PGN definitions:', err);
-  }
-  
-  return res;
-}
 
 export class MessageForwarder {
   constructor(io) {
@@ -88,18 +39,19 @@ export class MessageForwarder {
       
       try {
         // Get and print PGN definition
-        const pgnDef = this.pgns[pgn_id];
-        if (!pgnDef) {
+        const pgnDefs = this.pgns[pgn_id];
+        if (!pgnDefs || pgnDefs.length === 0) {
           console.log(`PGN ${pgn_id} definition not found`);
           console.log('Available PGNs:', Object.keys(this.pgns));
         } else {
+          const pgnDef = pgnDefs[0]; // Take the first definition
           console.log(`PGN ${pgn_id} definition:`, {
             description: pgnDef.Description,
-            fields: pgnDef.Fields.map(f => ({
+            fields: pgnDef.Fields?.map(f => ({
               name: f.Name,
               type: f.Type,
               units: f.Units
-            }))
+            })) || []
           });
         }
         console.log('Provided values:', values);

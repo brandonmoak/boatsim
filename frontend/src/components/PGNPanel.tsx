@@ -3,7 +3,7 @@ import Select from 'react-select';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
 import pgnConfig from '../config/pgn_config.yaml';
-import io from 'socket.io-client';
+import { initSocket, getSocket } from '../socket';
 import { loadPGNConfig } from '../utils/pgn_loader';
 
 interface PGNOption {
@@ -24,13 +24,19 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
     );
     const [pgnIntervals, setPgnIntervals] = useState<Record<string, NodeJS.Timeout>>({});
 
-    const socket = io('http://localhost:5001');
-
     useEffect(() => {
+        // Initialize socket connection once
+        const socket = initSocket();
+
         loadPGNConfig().then(definitions => {
             setPgnDefinitions(definitions);
         });
-    }, []);
+
+        // Cleanup on unmount
+        return () => {
+            Object.values(pgnIntervals).forEach(interval => clearInterval(interval));
+        };
+    }, []);  // Empty dependency array means this runs once on mount
 
     const handlePGNChange = (pgnKey: string, field: string, value: string | number) => {
         const numValue = typeof value === 'string' ? parseFloat(value) : value;
@@ -53,6 +59,9 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
     }));
 
     const emitPGNData = (pgnKey: string, config: PGNDefinition) => {
+        const socket = getSocket();  // Get the singleton socket instance
+        if (!socket) return;  // Safety check
+
         const timestamp = new Date().toISOString();
         const values: Record<string, number> = {};
 
