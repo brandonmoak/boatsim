@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import pgnsBase from '@canboat/pgns/canboat.json';
-import pgnsIK from '@canboat/pgns/pgns-ik.json';
-import pgnsNGT from '@canboat/pgns/pgns-ngt.json';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
 import pgnConfig from '../config/pgn_config.yaml';
+import io from 'socket.io-client';
+import { loadPGNConfig } from '../utils/pgn_loader';
 
 interface PGNOption {
     value: string;
@@ -15,58 +14,22 @@ interface PGNOption {
 interface PGNPanelProps {
     pgnState: Record<string, Record<string, number>>;
     onPGNUpdate: (pgnKey: string, updates: Record<string, number>) => void;
+    isSimulating: boolean;
 }
 
-function organizePGNs() {
-    console.log('Loading PGN Definitions:', {
-        base: {
-            count: pgnsBase.PGNs.length,
-            pgns: pgnsBase.PGNs.map(p => `${p.PGN} - ${p.Description}`),
-        },
-        ik: {
-            count: pgnsIK.PGNs.length,
-            pgns: pgnsIK.PGNs.map(p => `${p.PGN} - ${p.Description}`),
-        },
-        ngt: {
-            count: pgnsNGT.PGNs.length,
-            pgns: pgnsNGT.PGNs.map(p => `${p.PGN} - ${p.Description}`),
-        }
-    });
-
-    const res: Record<string, PGNDefinition[]> = {};
-    const all = [...pgnsBase.PGNs, ...pgnsIK.PGNs, ...pgnsNGT.PGNs];
-    
-    all.forEach(pgn => {
-        const pgnKey = pgn.PGN.toString();
-        if (!res[pgnKey]) {
-            res[pgnKey] = [];
-        }
-        
-        // Ensure Fields is always an array
-        pgn.Fields = Array.isArray(pgn.Fields) ? pgn.Fields : [];
-        
-        // Handle Reserved field names
-        let reservedCount = 1;
-        pgn.Fields.forEach((field) => {
-            if (field.Name === 'Reserved') {
-                field.Name = `Reserved${reservedCount++}`;
-            }
-        });
-        
-        res[pgnKey].push(pgn as PGNDefinition);
-    });
-    return res;
-}
-
-const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate }) => {
+const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating }) => {
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition[]>>({});
     const [selectedPGNs, setSelectedPGNs] = useState<string[]>(
         Object.values(pgnConfig.default_pgns || {}).map((pgn: unknown) => String(pgn))
     );
+    const [pgnIntervals, setPgnIntervals] = useState<Record<string, NodeJS.Timeout>>({});
+
+    const socket = io('http://localhost:5001');
 
     useEffect(() => {
-        const definitions = organizePGNs();
-        setPgnDefinitions(definitions);
+        loadPGNConfig().then(definitions => {
+            setPgnDefinitions(definitions);
+        });
     }, []);
 
     const handlePGNChange = (pgnKey: string, field: string, value: string | number) => {
@@ -88,6 +51,56 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate }) => {
         value: key,
         label: `${key} - ${defs[0]?.Description || 'Unknown'}`
     }));
+
+    const emitPGNData = (pgnKey: string, config: PGNDefinition) => {
+        const timestamp = new Date().toISOString();
+        const values: Record<string, number> = {};
+
+        // Get the current values for each field from pgnState
+        config.Fields.forEach(field => {
+            const fieldValue = pgnState[pgnKey]?.[field.Name];
+            if (fieldValue !== undefined) {
+                values[field.Name] = fieldValue;
+            }
+        });
+
+        const pgnUpdate = {
+            timestamp,
+            pgn_name: pgnKey,
+            pgn_id: config.PGN,
+            values: values  // Now includes all field values
+        };
+
+        console.log('Emitting PGN data:', pgnUpdate);
+        socket.emit('update_pgn_2000', [pgnUpdate]);
+    };
+
+    useEffect(() => {
+        Object.values(pgnIntervals).forEach(interval => clearInterval(interval));
+        
+        const newIntervals: Record<string, NodeJS.Timeout> = {};
+        
+        if (isSimulating) {
+            selectedPGNs.forEach(pgnKey => {
+                const config = pgnDefinitions[pgnKey]?.[0];
+                if (!config) return;
+
+                const rate = config.TransmissionInterval 
+                    ? config.TransmissionInterval 
+                    : 1000;
+
+                newIntervals[pgnKey] = setInterval(() => {
+                    emitPGNData(pgnKey, config);
+                }, rate);
+            });
+        }
+
+        setPgnIntervals(newIntervals);
+
+        return () => {
+            Object.values(newIntervals).forEach(interval => clearInterval(interval));
+        };
+    }, [selectedPGNs, pgnDefinitions, pgnState, isSimulating]);
 
     return (
         <div className="pgn-panel">

@@ -68,6 +68,7 @@ function App() {
           <PGNPanel 
             pgnState={pgnState}
             onPGNUpdate={handlePGNUpdate}
+            isSimulating={isSimulating}
           />
         </div>
       </div>

@@ -44,13 +44,6 @@ interface PGNItemProps {
 
 const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate }) => {
     // Add debug log when component renders
-    console.log('PGN Configuration:', {
-        pgn: config.PGN,
-        description: config.Description,
-        fields: config.Fields,
-        rate,
-        currentValues: value
-    });
 
     const currentValues = value || {};
     

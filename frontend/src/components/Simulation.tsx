@@ -29,21 +29,6 @@ function Simulation({
     });
   }, []);
 
-  const emitPGNData = () => {
-    if (!pgnConfig) return;
-    console.log('Emitting PGN data:', pgnState);
-
-    const timestamp = new Date().toISOString();
-    const pgnUpdates = Object.entries(pgnConfig).map(([key, config]: [string, any]) => ({
-      timestamp,
-      pgn_name: key,
-      pgn_id: config.pgn,
-      values: pgnState[key] || {}
-    }));
-
-    socket.emit('update_pgn_2000', pgnUpdates);
-  };
-
   const updatePosition = () => {
     const currentTime = new Date();
     const deltaTime = (currentTime.getTime() - lastUpdate.getTime()) / 1000;
@@ -135,7 +120,6 @@ function Simulation({
       simulationInterval = setInterval(() => {
         console.log('Simulation tick');
         updatePosition();
-        emitPGNData();
       }, 1000);
     }
 
@@ -144,7 +128,7 @@ function Simulation({
         clearInterval(simulationInterval);
       }
     };
-  }, [isSimulating, boatPosition, onPositionUpdate, onPGNUpdate, pgnState]);
+  }, [isSimulating, boatPosition, onPositionUpdate]);
 
   return <div />;
 }
