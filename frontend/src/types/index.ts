@@ -23,4 +23,38 @@ export interface ControlsProps {
   onStart: () => void;
   onStop: () => void;
   isRunning: boolean;
+}
+
+// PGN Types
+export interface PGNField {
+    Order: number;
+    Id: string;
+    Name: string;
+    Description?: string;
+    BitLength: number;
+    BitOffset: number;
+    BitStart: number;
+    Resolution?: number;
+    Signed?: boolean;
+    Unit?: string;  // Note: it's "Unit" not "Units" in the JSON
+    RangeMin?: number;
+    RangeMax?: number;
+    FieldType: string;
+    LookupEnumeration?: string;
+    EnumValues?: Record<string, string>;
+    PhysicalQuantity?: string;
+}
+
+export interface PGNDefinition {
+    PGN: number;
+    Id: string;
+    Description: string;
+    Priority?: number;
+    Fields: PGNField[];
+    Length?: number;
+    RepeatingFields?: number;
+    Type?: string;
+    Complete?: boolean;
+    FieldCount?: number;
+    TransmissionInterval?: number;
 } 
