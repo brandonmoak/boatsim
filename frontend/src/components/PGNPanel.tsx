@@ -5,6 +5,7 @@ import pgnsIK from '@canboat/pgns/pgns-ik.json';
 import pgnsNGT from '@canboat/pgns/pgns-ngt.json';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
+import pgnConfig from '../config/pgn_config.yaml';
 
 interface PGNOption {
     value: string;
@@ -59,11 +60,9 @@ function organizePGNs() {
 
 const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate }) => {
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition[]>>({});
-    const [selectedPGNs, setSelectedPGNs] = useState<string[]>([
-        '127250', // Vessel Heading
-        '127251', // Rate of Turn
-        '127257', // Attitude
-    ]);
+    const [selectedPGNs, setSelectedPGNs] = useState<string[]>(
+        Object.values(pgnConfig.default_pgns || {}).map((pgn: unknown) => String(pgn))
+    );
 
     useEffect(() => {
         const definitions = organizePGNs();
