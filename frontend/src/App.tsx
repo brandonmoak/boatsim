@@ -55,20 +55,26 @@ function App() {
 
   return (
     <div className="App">
+      <div className="main-container">
+        <div className="map-container">
+          <Map boatPosition={boatPosition} />
+          <Controls 
+            onStart={handleStart} 
+            onStop={handleStop} 
+            isRunning={isSimulating}
+          />
+        </div>
+        <div className="pgn-container">
+          <PGNPanel 
+            pgnState={pgnState}
+            onPGNUpdate={handlePGNUpdate}
+          />
+        </div>
+      </div>
       <Simulation 
         isSimulating={isSimulating} 
         onPositionUpdate={handleBoatPositionUpdate}
         initialPosition={boatPosition}
-        pgnState={pgnState}
-        onPGNUpdate={handlePGNUpdate}
-      />
-      <Map boatPosition={boatPosition} />
-      <Controls 
-        onStart={handleStart} 
-        onStop={handleStop} 
-        isRunning={isSimulating}
-      />
-      <PGNPanel 
         pgnState={pgnState}
         onPGNUpdate={handlePGNUpdate}
       />

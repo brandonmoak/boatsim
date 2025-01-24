@@ -39,9 +39,19 @@ interface PGNItemProps {
     config: PGNDefinition;
     value: Record<string, number>;
     onChange: (field: string, value: string | number) => void;
+    rate?: number;
 }
 
-const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange }) => {
+const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate }) => {
+    // Add debug log when component renders
+    console.log('PGN Configuration:', {
+        pgn: config.PGN,
+        description: config.Description,
+        fields: config.Fields,
+        rate,
+        currentValues: value
+    });
+
     const currentValues = value || {};
     
     const getFieldStep = (field: PGNField) => {
@@ -67,6 +77,9 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange }) => {
             <div className="pgn-description">
                 <span className="pgn-number">PGN {config.PGN}</span>
                 {config.Description}
+                {rate !== undefined && (
+                    <span className="pgn-rate"> [{rate.toFixed(1)}/s]</span>
+                )}
             </div>
             {config.Fields.map((field) => {
                 // Skip Reserved fields

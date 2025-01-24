@@ -17,6 +17,21 @@ interface PGNPanelProps {
 }
 
 function organizePGNs() {
+    console.log('Loading PGN Definitions:', {
+        base: {
+            count: pgnsBase.PGNs.length,
+            pgns: pgnsBase.PGNs.map(p => `${p.PGN} - ${p.Description}`),
+        },
+        ik: {
+            count: pgnsIK.PGNs.length,
+            pgns: pgnsIK.PGNs.map(p => `${p.PGN} - ${p.Description}`),
+        },
+        ngt: {
+            count: pgnsNGT.PGNs.length,
+            pgns: pgnsNGT.PGNs.map(p => `${p.PGN} - ${p.Description}`),
+        }
+    });
+
     const res: Record<string, PGNDefinition[]> = {};
     const all = [...pgnsBase.PGNs, ...pgnsIK.PGNs, ...pgnsNGT.PGNs];
     
@@ -77,42 +92,49 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate }) => {
 
     return (
         <div className="pgn-panel">
-            <h3>NMEA 2000 Parameters</h3>
-            
-            {/* PGN Selector */}
-            <div className="pgn-selector">
-                <Select
-                    options={pgnOptions}
-                    onChange={handlePGNSelect}
-                    value={null}  // Always reset to placeholder
-                    placeholder="Add PGN..."
-                    className="pgn-select-container"
-                    classNamePrefix="pgn-select"
-                    isClearable={false}
-                />
+            <div className="pgn-panel-header">
+                <h3>NMEA 2000 Parameters</h3>
+                
+                {/* PGN Selector */}
+                <div className="pgn-selector">
+                    <Select
+                        options={pgnOptions}
+                        onChange={handlePGNSelect}
+                        value={null}
+                        placeholder="Add PGN..."
+                        className="pgn-select-container"
+                        classNamePrefix="pgn-select"
+                        isClearable={false}
+                    />
+                </div>
             </div>
 
-            {/* Selected PGNs */}
-            {selectedPGNs.map(pgnKey => {
-                const definitions = pgnDefinitions[pgnKey];
-                if (!definitions?.[0]) return null;
+            <div className="pgn-panel-content">
+                {/* Sort PGNs numerically - lowest first */}
+                {selectedPGNs
+                    .sort((a, b) => parseInt(b) - parseInt(a))
+                    .map(pgnKey => {
+                        const definitions = pgnDefinitions[pgnKey];
+                        if (!definitions?.[0]) return null;
 
-                return (
-                    <div key={pgnKey} className="pgn-container">
-                        <button 
-                            className="remove-pgn"
-                            onClick={() => handleRemovePGN(pgnKey)}
-                        >
-                            ×
-                        </button>
-                        <PGNItem 
-                            config={definitions[0]}
-                            value={pgnState[pgnKey] || {}}
-                            onChange={(field, value) => handlePGNChange(pgnKey, field, value)}
-                        />
-                    </div>
-                );
-            })}
+                        return (
+                            <div key={pgnKey} className="pgn-item-container">
+                                <button 
+                                    className="remove-pgn"
+                                    onClick={() => handleRemovePGN(pgnKey)}
+                                >
+                                    ×
+                                </button>
+                                <PGNItem 
+                                    config={definitions[0]}
+                                    value={pgnState[pgnKey] || {}}
+                                    onChange={(field, value) => handlePGNChange(pgnKey, field, value)}
+                                    rate={definitions[0].TransmissionInterval ? (1000 / definitions[0].TransmissionInterval) : undefined}
+                                />
+                            </div>
+                        );
+                    })}
+            </div>
         </div>
     );
 };
