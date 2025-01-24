@@ -1,39 +1,5 @@
 import React from 'react';
-
-// Types from canboat PGNs
-interface PGNField {
-    Order: number;
-    Id: string;
-    Name: string;
-    Description?: string;
-    BitLength: number;
-    BitOffset: number;
-    BitStart: number;
-    Resolution?: number;
-    Signed?: boolean;
-    Unit?: string;
-    RangeMin?: number;
-    RangeMax?: number;
-    FieldType: string;
-    LookupEnumeration?: string;
-    EnumValues?: Record<string, string>;
-    Minimum?: number;
-    Maximum?: number;
-    Type?: string;
-}
-
-interface PGNDefinition {
-    PGN: number;
-    Id: string;
-    Description: string;
-    Priority?: number;
-    Fields: PGNField[];
-    Length?: number;
-    RepeatingFields?: number;
-    Type?: string;
-    Complete?: boolean;
-    FieldCount?: number;
-}
+import { PGNDefinition, PGNField } from '../types';
 
 interface PGNItemProps {
     config: PGNDefinition;

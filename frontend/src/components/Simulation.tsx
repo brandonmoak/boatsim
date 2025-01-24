@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
 import { BoatPosition, SimulationProps, Waypoint } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
 import { loadWaypoints} from '../utils/waypoint_loader';
-
-const socket = io('http://localhost:5001');
 
 function Simulation({ 
   isSimulating, 
