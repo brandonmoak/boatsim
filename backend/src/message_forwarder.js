@@ -1,5 +1,6 @@
 import dgram from 'dgram';
-import { FromPgn, pgnToActisenseSerialFormat, Serial } from '@canboatjs/canboatjs';
+import { SerialPort } from 'serialport';
+import { FromPgn, pgnToActisenseSerialFormat } from '@canboat/canboatjs';
 import { organizePGNs } from './pgn_utils.js';
 
 const NMEA_2000_PORT = 10111;
@@ -13,9 +14,9 @@ export class MessageForwarder {
     
     // Initialize serial connection if port provided
     if (serialPort) {
-      this.serial = new Serial({
-        device: serialPort,
-        baudrate: 115200
+      this.serial = new SerialPort({
+        path: serialPort,
+        baudRate: 115200
       });
       
       this.serial.on('error', (err) => {
