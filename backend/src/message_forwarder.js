@@ -1,6 +1,7 @@
 import dgram from 'dgram';
 import { SerialPort } from 'serialport';
-import { FromPgn, pgnToActisenseSerialFormat } from '@canboat/canboatjs';
+import pkg from '@canboat/canboatjs';
+const { FromPgn, pgnToActisenseSerialFormat } = pkg;
 import { organizePGNs } from './pgn_utils.js';
 
 const NMEA_2000_PORT = 10111;
