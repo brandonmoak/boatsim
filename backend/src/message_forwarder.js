@@ -1,7 +1,7 @@
 import dgram from 'dgram';
-import { SerialPort } from 'serialport';
 import pkg from '@canboat/canboatjs';
-const { FromPgn, pgnToActisenseSerialFormat } = pkg;
+import { EventEmitter } from 'events';
+const { FromPgn, Serial, pgnToActisenseSerialFormat } = pkg;
 import { organizePGNs } from './pgn_utils.js';
 
 const NMEA_2000_PORT = 10111;
@@ -15,18 +15,40 @@ export class MessageForwarder {
     
     // Initialize serial connection if port provided
     if (serialPort) {
-      this.serial = new SerialPort({
-        path: serialPort,
-        baudRate: 115200
-      });
-      
-      this.serial.on('error', (err) => {
-        console.error('Serial port error:', err);
-      });
+      this.setupSerialConnection(serialPort);
     }
     
     // Initialize PGNs asynchronously
     this.initializePGNs();
+  }
+
+  setupSerialConnection(devicePath) {
+    // Create serial connection using canboatjs Serial class
+    this.serial = new Serial({
+      app: this,
+      device: devicePath,
+      plainText: true,
+      disableSetTransmitPGNs: true
+    });
+
+    // Setup error handling
+    this.serial.on('error', (err) => {
+      console.error('Serial port error:', err);
+    });
+
+    // Forward received data to UDP
+    this.serial.on('data', (data) => {
+      this.socket.send(Buffer.from(data), NMEA_2000_PORT, UDP_IP, (err) => {
+        if (err) console.error('Error forwarding to UDP:', err);
+      });
+    });
+
+    // Setup debug logging if in development
+    if (process.env.NODE_ENV === 'development') {
+      this.serial.on('data', (data) => {
+        console.log('Received from serial:', data);
+      });
+    }
   }
 
   async initializePGNs() {
@@ -83,18 +105,14 @@ export class MessageForwarder {
         const message = pgnToActisenseSerialFormat(pgnData);
         
         if (message) {
-          // Send via UDP
-          this.socket.send(Buffer.from(message), NMEA_2000_PORT, UDP_IP, (err) => {
-            if (err) console.error('Error sending message:', err);
-          });
-
-          // Send via serial if available
-          if (this.serial) {
-            this.serial.write(message);
-          }
+          // Emit the raw message for serial transmission
+          this.emit('nmea2000out', message);
+          
+          // For UDP, we do want to stringify the object
+          this.socket.send(message, NMEA_2000_PORT, UDP_IP);
         }
       } catch (err) {
-        console.error(`Error encoding PGN ${pgn_id}:`, err);
+        console.error(`Error handling PGN ${pgn_id}:`, err);
       }
     });
   }
