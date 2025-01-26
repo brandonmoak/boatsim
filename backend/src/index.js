@@ -20,7 +20,7 @@ const io = new Server(httpServer, {
   pingInterval: 25000
 });
 
-const path = '/dev/ttyUSB0';
+const path = '/dev/usb-Actisense_NGX-1_4CD81-if00-port0';
 // Create boat simulator instance
 const forwarder = new MessageForwarder(io, path);
 
