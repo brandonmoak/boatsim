@@ -1,16 +1,28 @@
 import dgram from 'dgram';
 import pkg from '@canboat/canboatjs';
 import { organizePGNs } from './pgn_utils.js';
-const { FromPgn, pgnToActisenseSerialFormat } = pkg;
+const { FromPgn, pgnToActisenseSerialFormat, SerialStream } = pkg;
 
 const NMEA_2000_PORT = 10111;
 const UDP_IP = '127.0.0.1';
 
 export class MessageForwarder {
-  constructor(io) {
+  constructor(io, serialPort = null) {
     this.io = io;
     this.fromPgn = new FromPgn();
     this.socket = dgram.createSocket('udp4');
+    
+    // Initialize serial connection if port provided
+    if (serialPort) {
+      this.serial = new SerialStream({
+        baudrate: 115200,
+        port: serialPort
+      });
+      
+      this.serial.on('error', (err) => {
+        console.error('Serial port error:', err);
+      });
+    }
     
     // Initialize PGNs asynchronously
     this.initializePGNs();
@@ -74,6 +86,11 @@ export class MessageForwarder {
           this.socket.send(Buffer.from(message), NMEA_2000_PORT, UDP_IP, (err) => {
             if (err) console.error('Error sending message:', err);
           });
+
+          // Send via serial if available
+          if (this.serial) {
+            this.serial.write(message);
+          }
         }
       } catch (err) {
         console.error(`Error encoding PGN ${pgn_id}:`, err);
@@ -83,5 +100,8 @@ export class MessageForwarder {
 
   stop() {
     this.socket.close();
+    if (this.serial) {
+      this.serial.close();
+    }
   }
 } 

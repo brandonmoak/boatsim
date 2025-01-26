@@ -20,8 +20,9 @@ const io = new Server(httpServer, {
   pingInterval: 25000
 });
 
+const path = '/dev/ttyUSB0';
 // Create boat simulator instance
-const forwarder = new MessageForwarder(io);
+const forwarder = new MessageForwarder(io, path);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
