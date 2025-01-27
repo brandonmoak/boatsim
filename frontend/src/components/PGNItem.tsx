@@ -1,5 +1,6 @@
 import React from 'react';
 import { PGNDefinition, PGNField } from '../types';
+import { getInitialPGNState } from 'src/utils/pgn_loader';
 
 interface PGNItemProps {
     config: PGNDefinition;
@@ -10,7 +11,17 @@ interface PGNItemProps {
 }
 
 const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRateChange }) => {
-    // Add debug log when component renders
+    React.useEffect(() => {
+        // Initialize state only if value is empty
+        if (!value || Object.keys(value).length === 0) {
+            const initialState = getInitialPGNState({ [config.PGN]: config });
+            const initialValues = initialState[config.PGN];
+            // Update parent with initial values
+            Object.entries(initialValues).forEach(([field, value]) => {
+                onChange(field, value);
+            });
+        }
+    }, []); // Empty dependency array means this only runs once on mount
 
     const currentValues = value || {};
     

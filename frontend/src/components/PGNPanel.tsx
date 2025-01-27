@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import PGNItem from './PGNItem';
-import { PGNDefinition } from '../types';
-import pgnConfig from '../config/pgn_config.yaml';
+import { PGNDefinition, PGNDefaults} from '../types';
 import { initSocket, getSocket } from '../socket';
-import { loadPGNConfig } from '../utils/pgn_loader';
+import { loadPGNConfig, getDefaultPGNArray } from '../utils/pgn_loader';
 
 interface PGNOption {
     value: string;
@@ -18,9 +17,10 @@ interface PGNPanelProps {
 }
 
 const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating }) => {
-    const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition[]>>({});
+    const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [selectedPGNs, setSelectedPGNs] = useState<string[]>(
-        Object.values(pgnConfig.default_pgns || {}).map((pgn: unknown) => String(pgn))
+      getDefaultPGNArray()
+    //   Object.keys(getDefaultPGNs()).map((element) => String(element))
     );
     const [pgnIntervals, setPgnIntervals] = useState<Record<string, NodeJS.Timeout>>({});
     const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
@@ -56,7 +56,7 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
 
     const pgnOptions: PGNOption[] = Object.entries(pgnDefinitions).map(([key, defs]) => ({
         value: key,
-        label: `${key} - ${defs[0]?.Description || 'Unknown'}`
+        label: `${key} - ${defs?.Description || 'Unknown'}`
     }));
 
     const emitPGNData = (pgnKey: string, config: PGNDefinition) => {
@@ -117,7 +117,7 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
         
         if (isSimulating) {
             selectedPGNs.forEach(pgnKey => {
-                const config = pgnDefinitions[pgnKey]?.[0];
+                const config = pgnDefinitions[pgnKey];
                 if (!config) return;
 
                 const rate = config.TransmissionInterval 
@@ -162,7 +162,7 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
                     .sort((a, b) => parseInt(b) - parseInt(a))
                     .map(pgnKey => {
                         const definitions = pgnDefinitions[pgnKey];
-                        if (!definitions?.[0]) return null;
+                        if (!definitions) return null;
 
                         return (
                             <div key={pgnKey} className="pgn-item-container">
@@ -173,11 +173,11 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
                                     ×
                                 </button>
                                 <PGNItem 
-                                    config={definitions[0]}
+                                    config={definitions}
                                     value={pgnState[pgnKey] || {}}
                                     onChange={(field, value) => handlePGNChange(pgnKey, field, value)}
-                                    rate={pgnRates[pgnKey] ?? (definitions[0].TransmissionInterval ? (1000 / definitions[0].TransmissionInterval) : undefined)}
-                                    onRateChange={(newRate) => handleRateChange(pgnKey, newRate, definitions[0])}
+                                    rate={pgnRates[pgnKey] ?? (definitions.TransmissionInterval ? (1000 / definitions.TransmissionInterval) : undefined)}
+                                    onRateChange={(newRate) => handleRateChange(pgnKey, newRate, definitions)}
                                 />
                             </div>
                         );

@@ -26,6 +26,14 @@ export interface ControlsProps {
 }
 
 // PGN Types
+export interface PGNDefaults {
+  [key: string]: PGNDefaultField; 
+}
+
+export interface PGNDefaultField {
+    [key: string]: number;
+}
+
 export interface PGNField {
     Order: number;
     Id: string;
