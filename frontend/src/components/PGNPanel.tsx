@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import PGNItem from './PGNItem';
-import { PGNDefinition, PGNDefaults} from '../types';
-import { initSocket, getSocket } from '../socket';
+import { PGNDefinition } from '../types';
+import { getSocket } from '../socket';
 import { loadPGNConfig, getDefaultPGNArray } from '../utils/pgn_loader';
 
 interface PGNOption {
@@ -26,8 +26,6 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, onPGNUpdate, isSimulating
     const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
 
     useEffect(() => {
-        // Initialize socket connection once
-        const socket = initSocket();
 
         loadPGNConfig().then(definitions => {
             setPgnDefinitions(definitions);

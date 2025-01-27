@@ -1,6 +1,6 @@
 import React from 'react';
 import { PGNDefinition, PGNField } from '../types';
-import { getInitialPGNState } from 'src/utils/pgn_loader';
+import { getInitialPGNState } from '../utils/pgn_loader';
 
 interface PGNItemProps {
     config: PGNDefinition;

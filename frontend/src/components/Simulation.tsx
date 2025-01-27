@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BoatPosition, SimulationProps, Waypoint } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
 import { loadWaypoints} from '../utils/waypoint_loader';
+import { createGNSSPositionData } from '../utils/pgn_utils';
 
 function Simulation({ 
   isSimulating, 
@@ -73,6 +74,12 @@ function Simulation({
       lon: boatPosition.lon + deltaLon,
       heading: bearing // Update heading to point towards waypoint
     };
+
+    // Emit PGN 129029 - GNSS Position Data
+    if (pgnConfig && onPGNUpdate) {
+      const pgn129029 = createGNSSPositionData(newPosition, currentTime);
+      onPGNUpdate('129029', pgn129029.fields);
+    }
 
     console.log('setting boat position:', newPosition);
     setBoatPosition(newPosition);
