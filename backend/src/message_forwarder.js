@@ -13,42 +13,8 @@ export class MessageForwarder {
     this.fromPgn = new FromPgn();
     this.socket = dgram.createSocket('udp4');
     
-    // Initialize serial connection if port provided
-    if (serialPort) {
-      this.setupSerialConnection(serialPort);
-    }
-    
     // Initialize PGNs asynchronously
     this.initializePGNs();
-  }
-
-  setupSerialConnection(devicePath) {
-    // Create serial connection using canboatjs Serial class
-    this.serial = new Serial({
-      app: this,
-      device: devicePath,
-      plainText: true,
-      disableSetTransmitPGNs: true
-    });
-
-    // Setup error handling
-    this.serial.on('error', (err) => {
-      console.error('Serial port error:', err);
-    });
-
-    // Forward received data to UDP
-    this.serial.on('data', (data) => {
-      this.socket.send(Buffer.from(data), NMEA_2000_PORT, UDP_IP, (err) => {
-        if (err) console.error('Error forwarding to UDP:', err);
-      });
-    });
-
-    // Setup debug logging if in development
-    if (process.env.NODE_ENV === 'development') {
-      this.serial.on('data', (data) => {
-        console.log('Received from serial:', data);
-      });
-    }
   }
 
   async initializePGNs() {
@@ -119,8 +85,5 @@ export class MessageForwarder {
 
   stop() {
     this.socket.close();
-    if (this.serial) {
-      this.serial.close();
-    }
   }
 } 
