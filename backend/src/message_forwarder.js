@@ -1,89 +1,79 @@
-import dgram from 'dgram';
 import pkg from '@canboat/canboatjs';
-import { EventEmitter } from 'events';
-const { FromPgn, Serial, pgnToActisenseSerialFormat } = pkg;
-import { organizePGNs } from './pgn_utils.js';
+const { FromPgn, pgnToActisenseSerialFormat, Actisense, serial} = pkg;
+import { SerialPort } from 'serialport'
+import { EventEmitter } from 'events'
+import dgram from 'dgram'
 
-const NMEA_2000_PORT = 10111;
-const UDP_IP = '127.0.0.1';
+const SerialStream = serial.SerialStream;
 
-export class MessageForwarder {
-  constructor(io, serialPort = null) {
-    this.io = io;
-    this.fromPgn = new FromPgn();
-    this.socket = dgram.createSocket('udp4');
-    
-    // Initialize PGNs asynchronously
-    this.initializePGNs();
-  }
-
-  async initializePGNs() {
-    try {
-      this.pgns = await organizePGNs();
-      console.log('Available PGNs:', Object.keys(this.pgns));
-      
-      // Let's look at PGN 127250 (Vessel Heading) as an example
-      const headingPgn = this.pgns['127250'];
-      if (headingPgn) {
-        console.log('\nVessel Heading (127250) Definition:');
-        console.log(JSON.stringify(headingPgn[0], null, 2));
-      }
-    } catch (err) {
-      console.warn('Error organizing PGN definitions:', err);
-      this.pgns = {};
+class MessageForwarder extends EventEmitter {
+    constructor(io, devicePath) {
+        super();
+        this.io = io;
+        this.devicePath = devicePath;
+        this.setupDevice();
+        this.setupUDP();
     }
-  }
 
-  handlePGNUpdate(pgnUpdates) {
-    pgnUpdates.forEach(update => {
-      const { pgn_id, values } = update;
-      
-      try {
-        // Get and print PGN definition
-        const pgnDefs = this.pgns[pgn_id];
-        if (!pgnDefs || pgnDefs.length === 0) {
-          console.log(`PGN ${pgn_id} definition not found`);
-          console.log('Available PGNs:', Object.keys(this.pgns));
-        } else {
-          const pgnDef = pgnDefs[0]; // Take the first definition
-          console.log(`PGN ${pgn_id} definition:`, {
-            description: pgnDef.Description,
-            fields: pgnDef.Fields?.map(f => ({
-              name: f.Name,
-              type: f.Type,
-              units: f.Units
-            })) || []
-          });
+    setupDevice() {
+        // Setup Serial Stream parser using the SerialStream class directly from pkg
+        this.actisense = new serial({
+            device: this.devicePath,
+            app: this,
+            outEvent: 'nmea2000out',  // specify the output event name
+            reconnect: true,
+            baudRate: 115200
+        });
+
+    }
+
+    setupUDP() {
+        this.udpSocket = dgram.createSocket('udp4');
+        this.UDP_PORT = 10111;
+        this.BROADCAST_ADDRESS = '127.0.0.1';
+    }
+
+    handlePGNUpdate(data) {
+        try {
+            // Format the message for NMEA 2000
+            const msg = {
+                pgn: data.pgn,
+                priority: 2,
+                dst: 255,
+                src: 1,
+                timestamp: new Date().toISOString(),
+                fields: data.fields
+            };
+
+            // Emit the message using the event that actisense is listening for
+            this.emit('nmea2000out', msg);
+            
+            // Convert to Actisense serial format and send over UDP
+            const message = pgnToActisenseSerialFormat(msg);
+            if (message) {
+                this.udpSocket.send(
+                    message, 
+                    this.UDP_PORT, 
+                    this.BROADCAST_ADDRESS
+                );
+            }
+
+            // Emit to frontend to confirm
+            this.io.emit('pgn_sent', {
+                status: 'success',
+                message: msg
+            });
+
+            console.log('Sent to device and UDP:', message);
+
+        } catch (error) {
+            console.error('Error sending PGN:', error);
+            this.io.emit('pgn_sent', {
+                status: 'error',
+                error: error.message
+            });
         }
-        console.log('Provided values:', values);
+    }
+}
 
-        // Create PGN object in canboatjs format
-        const pgnData = {
-          pgn: pgn_id,
-          timestamp: Date.now(),
-          src: 1,
-          dst: 255,
-          prio: 2,
-          fields: values
-        };
-
-        // Convert to Actisense serial format
-        const message = pgnToActisenseSerialFormat(pgnData);
-        
-        if (message) {
-          // Emit the raw message for serial transmission
-          this.emit('nmea2000out', message);
-          
-          // For UDP, we do want to stringify the object
-          this.socket.send(message, NMEA_2000_PORT, UDP_IP);
-        }
-      } catch (err) {
-        console.error(`Error handling PGN ${pgn_id}:`, err);
-      }
-    });
-  }
-
-  stop() {
-    this.socket.close();
-  }
-} 
+export { MessageForwarder }; 

@@ -7,8 +7,8 @@ import Simulation from './components/Simulation';
 import './App.css';
 import { BoatPosition } from './types';
 import { loadPGNConfig, getInitialPGNState } from './utils/pgn_loader';
+import { initSocket } from './utils/socket';
 
-// const socket = io('http://localhost:5001');
 
 function App() {
   // Create state variables
@@ -21,6 +21,7 @@ function App() {
   });
 
   useEffect(() => {
+    initSocket();
     loadPGNConfig().then((config) => {
       setPGNState(getInitialPGNState(config));
     });

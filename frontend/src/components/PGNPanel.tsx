@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
-import { getSocket } from '../socket';
+import { getSocket } from '../utils/socket';
 import { loadPGNConfig, getDefaultPGNArray } from '../utils/pgn_loader';
 
 interface PGNOption {
