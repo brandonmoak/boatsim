@@ -33,38 +33,45 @@ class MessageForwarder extends EventEmitter {
         this.BROADCAST_ADDRESS = '127.0.0.1';
     }
 
-    handlePGNUpdate(data) {
+    handlePGNUpdate(dataArray) {
+        console.log('--------------------------------');
+        console.log('handlePGNUpdate received:', dataArray);
+        console.log('--------------------------------');
+
         try {
-            // Format the message for NMEA 2000
-            const msg = {
-                pgn: data.pgn,
-                priority: 2,
-                dst: 255,
-                src: 1,
-                timestamp: new Date().toISOString(),
-                fields: data.fields
-            };
+            // Loop through each PGN message in the array
+            dataArray.forEach(data => {
+                // Format the message for NMEA 2000
+                const msg = {
+                    pgn: parseInt(data['pgn_id']),
+                    priority: 2,
+                    dst: 255,
+                    src: 1,
+                    timestamp: Date.now(),
+                    fields: data['values']
+                };
 
-            // Emit the message using the event that actisense is listening for
-            this.emit('nmea2000out', msg);
-            
-            // Convert to Actisense serial format and send over UDP
-            const message = pgnToActisenseSerialFormat(msg);
-            if (message) {
-                this.udpSocket.send(
-                    message, 
-                    this.UDP_PORT, 
-                    this.BROADCAST_ADDRESS
-                );
-            }
+                // Emit the message using the event that actisense is listening for
+                this.emit('nmea2000out', msg);
+                
+                // Convert to Actisense serial format and send over UDP
+                const message = pgnToActisenseSerialFormat(msg);
+                if (message) {
+                    this.udpSocket.send(
+                        message, 
+                        this.UDP_PORT, 
+                        this.BROADCAST_ADDRESS
+                    );
+                }
 
-            // Emit to frontend to confirm
-            this.io.emit('pgn_sent', {
-                status: 'success',
-                message: msg
+                // Emit to frontend to confirm
+                this.io.emit('pgn_sent', {
+                    status: 'success',
+                    message: msg
+                });
+
+                console.log('Sent to device and UDP:', message);
             });
-
-            console.log('Sent to device and UDP:', message);
 
         } catch (error) {
             console.error('Error sending PGN:', error);

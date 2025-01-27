@@ -11,7 +11,7 @@ const httpServer = createServer(app);
 app.use(cors());
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3002",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"]
   },
   // Add connection debugging and control options
