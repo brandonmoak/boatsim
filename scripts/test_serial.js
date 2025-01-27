@@ -1,10 +1,13 @@
-import pkg from '@canboat/canboatjs';
+
+const pkg = require('@canboat/canboatjs');
 const { FromPgn, pgnToActisenseSerialFormat, Actisense, serial } = pkg;
+const EventEmitter = require('events');
 
 const SerialStream = serial.SerialStream;
 
-class SerialTester {
+class SerialTester extends EventEmitter {
     constructor(devicePath) {
+	super();
         this.devicePath = devicePath;
         this.setupDevice();
         this.testConnection();
