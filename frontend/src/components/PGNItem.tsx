@@ -5,12 +5,12 @@ import { getInitialPGNState } from '../utils/pgn_loader';
 interface PGNItemProps {
     config: PGNDefinition;
     value: Record<string, number>;
-    onChange: (field: string, value: string | number) => void;
     rate?: number;
-    onRateChange?: (value: number) => void;
+    onValueChange: (field: string, value: number) => void;
+    onRateChange: (value: number) => void;
 }
 
-const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRateChange }) => {
+const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, onRateChange }) => {
     React.useEffect(() => {
         // Initialize state only if value is empty
         if (!value || Object.keys(value).length === 0) {
@@ -18,7 +18,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRate
             const initialValues = initialState[config.PGN];
             // Update parent with initial values
             Object.entries(initialValues).forEach(([field, value]) => {
-                onChange(field, value);
+                onValueChange(field, value);
             });
         }
     }, []); // Empty dependency array means this only runs once on mount
@@ -44,7 +44,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRate
     };
 
     const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onRateChange?.(Number(e.target.value));
+        onRateChange(parseFloat(e.target.value));
     };
 
     return (
@@ -52,6 +52,18 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRate
             <div className="pgn-description">
                 <span className="pgn-number">PGN {config.PGN}</span>
                 {config.Description}
+            </div>
+            <div className="pgn-value">
+                <label>Rate:</label>
+                <input
+                    type="number"
+                    value={rate || ''}
+                    onChange={handleRateChange}
+                    min={0}
+                    max={100}
+                    step={0.1}
+                />
+                <span>Hz</span>
             </div>
             {config.Fields.map((field) => {
                 // Skip Reserved fields
@@ -64,7 +76,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRate
                             <label>{field.Description || field.Name}:</label>
                             <select
                                 value={currentValues[field.Name] || ''}
-                                onChange={(e) => onChange(field.Name, e.target.value)}
+                                onChange={(e) => onValueChange(field.Name, parseFloat(e.target.value))}
                             >
                                 {Object.entries(field.EnumValues).map(([value, label]) => (
                                     <option key={value} value={value}>
@@ -83,7 +95,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRate
                         <input
                             type="number"
                             value={currentValues[field.Name] || 0}
-                            onChange={(e) => onChange(field.Name, e.target.value)}
+                            onChange={(e) => onValueChange(field.Name, parseFloat(e.target.value))}
                             min={getFieldMin(field)}
                             max={getFieldMax(field)}
                             step={getFieldStep(field)}
@@ -92,20 +104,6 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, onChange, rate, onRate
                     </div>
                 );
             })}
-            {rate !== undefined && (
-                <div className="pgn-value">
-                    <label>Rate:</label>
-                    <input
-                        type="number"
-                        value={rate || ''}
-                        onChange={handleRateChange}
-                        min={0}
-                        max={100}
-                        step={0.1}
-                    />
-                    <span>Hz</span>
-                </div>
-            )}
         </div>
     );
 };

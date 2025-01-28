@@ -68,7 +68,6 @@ export function getInitialPGNState(config: Record<string, PGNDefinition>): PGNDe
             // Initialize each field with a default value (0) or from the default PGN
             state[pgnKey] = {};
             pgnDefinition.Fields.forEach(field => {
-                console.log(field.Name, pgnDefault);
                 state[pgnKey][field.Name] = pgnDefault[field.Name] ?? 0;
             });
         } else {

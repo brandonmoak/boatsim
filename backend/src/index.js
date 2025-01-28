@@ -3,15 +3,23 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { MessageForwarder } from './message_forwarder.js';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 const httpServer = createServer(app);
+
+// Read ports from frontend .env file
+const frontendEnvPath = path.join(process.cwd(), '../frontend/.env');
+const frontendEnv = fs.readFileSync(frontendEnvPath, 'utf8');
+const frontendPort = frontendEnv.match(/PORT=(\d+)/)[1];
+const backendPort = frontendEnv.match(/REACT_APP_BACKEND_PORT=(\d+)/)[1];
 
 // Configure CORS for both Express and Socket.IO
 app.use(cors());
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: `http://localhost:${frontendPort}`,
     methods: ["GET", "POST"]
   },
   // Add connection debugging and control options
@@ -20,9 +28,10 @@ const io = new Server(httpServer, {
   pingInterval: 25000
 });
 
-const path = '/dev/serial/by-id/usb-Actisense_NGX-1_4CD81-if00-port0';
+const actisensePath = '/dev/serial/by-id/usb-Actisense_NGX-1_4CD81-if00-port0';
+
 // Create boat simulator instance
-const forwarder = new MessageForwarder(io, path);
+const forwarder = new MessageForwarder(io, actisensePath, actisensePath);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
@@ -33,7 +42,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('update_pgn_2000', (data) => {
-    console.log('Received PGN update:', data);
+    // console.log('Received PGN update:', data);
     forwarder.handlePGNUpdate(data);
   });
 
@@ -46,7 +55,6 @@ io.on('connection', (socket) => {
 });
 
 // Start server
-const PORT = 5001;
-httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+httpServer.listen(backendPort, () => {
+  console.log(`Server running on port ${backendPort}`);
 }); 

@@ -4,7 +4,9 @@ let socket: Socket | null = null;
 
 export const initSocket = (): Socket => {
     if (!socket) {
-        socket = io('http://localhost:5001', {
+        const backendPort = process.env.REACT_APP_BACKEND_PORT;
+        console.log('Backend port:', backendPort);
+        socket = io(`http://localhost:${backendPort}`, {
             transports: ['websocket'],
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
