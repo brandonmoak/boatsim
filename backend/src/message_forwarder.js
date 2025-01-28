@@ -5,8 +5,6 @@ import { EventEmitter } from 'events'
 import dgram from 'dgram'
 import { PgnStatsManager } from './PgnStatsManager.js';
 
-const SerialStream = serial.SerialStream;
-
 class MessageForwarder extends EventEmitter {
     constructor(io, devicePath) {
         super();

@@ -1,7 +1,5 @@
 import express from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
-import cors from 'cors';
 import { MessageForwarder } from './message_forwarder.js';
 import path from 'path';
 import fs from 'fs';
