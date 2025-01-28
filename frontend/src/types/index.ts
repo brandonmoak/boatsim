@@ -78,6 +78,5 @@ export interface PGNPanelProps {
   pgnState: Record<string, Record<string, number>>;
   pgnRates: Record<string, number>;
   onPGNUpdate: (pgnKey: string, update: PGNUpdate) => void;
-  isSimulating: boolean;
   onSelectedPGNsChange: (pgns: string[]) => void;
 } 

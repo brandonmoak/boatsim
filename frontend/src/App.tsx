@@ -13,7 +13,7 @@ import {
 // Utils
 import { initSocket } from './utils/socket';
 import { loadPGNConfig, getInitialPGNState } from './utils/pgn_loader';
-import { emitPGNData, startEmitting, stopEmitting, stopEmittingPGN } from './utils/pgn_emitter';
+import { startEmitting, stopEmitting, stopEmittingPGN } from './utils/pgn_emitter';
 
 
 function App() {
@@ -48,6 +48,7 @@ function App() {
 
   const handleStart = () => {
     setIsSimulating(true);
+    console.log('Starting simulation');
     startEmitting(pgnConfig, () => pgnState, selectedPGNs, pgnRates);
   };
 
@@ -67,6 +68,7 @@ function App() {
         // If we're simulating, restart emission for this PGN
         if (isSimulating) {
           stopEmittingPGN(system);
+          console.log('Starting emission for PGN:', system);
           startEmitting(pgnConfig, () => pgnState, selectedPGNs, newRates);
         }
         
@@ -88,6 +90,7 @@ function App() {
     
     if (isSimulating) {
       stopEmitting();
+      console.log('Handling selected PGN change:', newSelectedPGNs);
       startEmitting(pgnConfig, () => pgnState, newSelectedPGNs, pgnRates);
     }
   };
@@ -108,7 +111,6 @@ function App() {
             pgnState={pgnState}
             pgnRates={pgnRates}
             onPGNUpdate={handlePGNUpdate}
-            isSimulating={isSimulating}
             onSelectedPGNsChange={handleSelectedPGNsChange}
           />
         </div>

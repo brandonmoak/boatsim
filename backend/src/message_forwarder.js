@@ -22,13 +22,13 @@ class MessageForwarder extends EventEmitter {
 
     setupDevice() {
         // Setup Serial Stream parser using the SerialStream class directly from pkg
-        this.actisense = new serial({
-            device: this.devicePath,
-            app: this,
-            outEvent: 'nmea2000out',  // specify the output event name
-            reconnect: true,
-            baudRate: 115200
-        });
+        // this.actisense = new serial({
+        //     device: this.devicePath,
+        //     app: this,
+        //     outEvent: 'nmea2000out',  // specify the output event name
+        //     reconnect: true,
+        //     baudRate: 115200
+        // });
 
     }
 
@@ -39,48 +39,31 @@ class MessageForwarder extends EventEmitter {
     }
 
     handlePGNUpdate(dataArray) {
-        // console.log('--------------------------------');
-        // console.log('handlePGNUpdate received:', dataArray);
-        // console.log('--------------------------------');
+        for (const data of dataArray) {
+            const pgn = data['pgn_id'];
+            
+            // Update stats manager
+            this.statsManager.updateStats(pgn);
 
-        try {
-            // Loop through each PGN message in the array
-            dataArray.forEach(data => {
-                const pgn = data['pgn_id'];
-                this.statsManager.updateStats(pgn);
+            const msg = {
+                pgn: parseInt(pgn),
+                priority: 2,
+                dst: 255,
+                src: 1,
+                timestamp: Date.now(),
+                fields: data['values']
+            };
 
-                // Format the message for NMEA 2000
-                const msg = {
-                    pgn: parseInt(pgn),
-                    priority: 2,
-                    dst: 255,
-                    src: 1,
-                    timestamp: Date.now(),
-                    fields: data['values']
-                };
-
-                // Emit the message using the event that actisense is listening for
-                this.emit('nmea2000out', msg);
-                
-                // Convert to Actisense serial format and send over UDP
-                const message = pgnToActisenseSerialFormat(msg);
-                if (message) {
-                    this.udpSocket.send(
-                        message, 
-                        this.UDP_PORT, 
-                        this.BROADCAST_ADDRESS
-                    );
-                }
-
-                console.log('Sent to device and UDP:', message);
-            });
-
-        } catch (error) {
-            console.error('Error sending PGN:', error);
-            this.io.emit('pgn_sent', {
-                status: 'error',
-                error: error.message
-            });
+            this.emit('nmea2000out', msg);
+            
+            const message = pgnToActisenseSerialFormat(msg);
+            if (message) {
+                this.udpSocket.send(
+                    message, 
+                    this.UDP_PORT, 
+                    this.BROADCAST_ADDRESS
+                );
+            }
         }
     }
 }

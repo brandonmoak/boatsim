@@ -4,7 +4,6 @@ import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
 import { loadPGNConfig, getDefaultPGNArray } from '../utils/pgn_loader';
 import { 
-  PGNUpdate, 
   PGNPanelProps 
 } from '../types';
 
@@ -13,9 +12,11 @@ interface PGNOption {
     label: string;
 }
 
-const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, pgnRates, onPGNUpdate, isSimulating, onSelectedPGNsChange }) => {
+const PGNPanel = React.memo(({ pgnState, pgnRates, onPGNUpdate, onSelectedPGNsChange }: PGNPanelProps) => {
+    
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [selectedPGNs, setSelectedPGNs] = useState<string[]>(getDefaultPGNArray());
+    const lastPGNsRef = React.useRef('');
 
     useEffect(() => {
         loadPGNConfig().then(definitions => {
@@ -24,7 +25,14 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, pgnRates, onPGNUpdate, is
     }, []);
 
     useEffect(() => {
-        onSelectedPGNsChange(selectedPGNs);
+        // Deep equality check to see if the array actually changed
+        const currentPGNsString = JSON.stringify(selectedPGNs.sort());
+        
+        if (currentPGNsString !== lastPGNsRef.current) {
+            console.log('Selected PGNs actually changed:', selectedPGNs);
+            onSelectedPGNsChange(selectedPGNs);
+            lastPGNsRef.current = currentPGNsString;
+        }
     }, [selectedPGNs, onSelectedPGNsChange]);
 
     const handlePGNChange = (pgnKey: string, field: string, value: string | number) => {
@@ -105,6 +113,11 @@ const PGNPanel: React.FC<PGNPanelProps> = ({ pgnState, pgnRates, onPGNUpdate, is
             </div>
         </div>
     );
-};
+}, (prevProps, nextProps) => {
+    return (
+        JSON.stringify(prevProps.pgnState) === JSON.stringify(nextProps.pgnState) &&
+        JSON.stringify(prevProps.pgnRates) === JSON.stringify(nextProps.pgnRates)
+    );
+});
 
 export default PGNPanel; 

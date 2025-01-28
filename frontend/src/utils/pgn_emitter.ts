@@ -9,10 +9,15 @@ interface PGNConfig {
   TransmissionInterval?: number;
 }
 
-type EmissionIntervals = Record<string, NodeJS.Timeout>;
-const activeEmissions: EmissionIntervals = {};
+type EmissionIntervals = Record<string, number>;
+let activeEmissions: EmissionIntervals = {};
 
 const GPS_PGN = '129029';
+
+// Create a Web Worker for timing
+const timerWorker = new Worker(
+  new URL('./timer.worker.ts', import.meta.url)
+);
 
 export const emitPGNData = (
   pgnKey: string, 
@@ -43,8 +48,9 @@ export const emitPGNData = (
     values: values
   };
 
+  // Use volatile emit for high-frequency updates
   console.log('Emitting PGN data:', pgnUpdate);
-  socket.emit('update_pgn_2000', [pgnUpdate]);
+  socket.volatile.emit('update_pgn_2000', [pgnUpdate]);
 };
 
 export const startEmitting = (
@@ -53,44 +59,58 @@ export const startEmitting = (
   selectedPGNs: string[],
   pgnRates: Record<string, number>
 ) => {
-  // Stop any PGNs that are no longer selected
-  Object.keys(activeEmissions).forEach(pgnKey => {
-    if (!selectedPGNs.includes(pgnKey)) {
-      clearInterval(activeEmissions[pgnKey]);
-      delete activeEmissions[pgnKey];
-    }
-  });
-
+  // Stop any existing emissions
+  timerWorker.postMessage({ type: 'stop' });
+  
   // Create array of unique PGNs including GPS
   const pgnsToEmit = selectedPGNs.includes(GPS_PGN) 
     ? selectedPGNs 
     : [...selectedPGNs, GPS_PGN];
 
-  // Start new intervals for selected PGNs that aren't already running
+  console.log('PGNs to emit:', pgnsToEmit);
+
+  // Configure worker for each PGN
   pgnsToEmit.forEach(pgnKey => {
-    if (activeEmissions[pgnKey]) return; // Skip if already emitting
-
     const config = pgnConfigs[pgnKey];
-    if (!config) return;
+    if (!config) {
+      console.error(`No config found for PGN: ${pgnKey}`);
+      return;
+    }
 
-    // Calculate interval in milliseconds based on rate (Hz)
-    const rate = pgnRates[pgnKey] || 1; // Default to 1Hz if no rate specified
-    const interval = 1000 / rate; // Convert Hz to milliseconds
-    
-    activeEmissions[pgnKey] = setInterval(() => {
-      emitPGNData(pgnKey, config, getLatestState());
-    }, interval);
+    const rate = pgnRates[pgnKey] || 1;
+    timerWorker.postMessage({ 
+      type: 'start',
+      pgnKey,
+      interval: 1000 / rate 
+    });
   });
+
+  // Handle worker messages
+  timerWorker.onmessage = (e) => {
+    const { pgnKey } = e.data;
+    const config = pgnConfigs[pgnKey];
+    if (config) {
+      emitPGNData(pgnKey, config, getLatestState());
+    }
+  };
 };
 
 export const stopEmitting = () => {
-  Object.values(activeEmissions).forEach(interval => clearInterval(interval));
-  Object.keys(activeEmissions).forEach(key => delete activeEmissions[key]);
+  timerWorker.postMessage({ type: 'stop' });
 };
 
 export const stopEmittingPGN = (pgnKey: string) => {
   if (activeEmissions[pgnKey]) {
-    clearInterval(activeEmissions[pgnKey]);
+    cancelAnimationFrame(activeEmissions[pgnKey]);
     delete activeEmissions[pgnKey];
   }
+};
+
+// Add a new function to update rates
+export const updatePGNRate = (pgnKey: string, rate: number) => {
+  timerWorker.postMessage({ 
+    type: 'start',
+    pgnKey,
+    interval: 1000.0 / rate
+  });
 }; 
