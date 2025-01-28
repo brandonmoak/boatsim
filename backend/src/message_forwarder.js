@@ -22,14 +22,13 @@ class MessageForwarder extends EventEmitter {
 
     setupDevice() {
         // Setup Serial Stream parser using the SerialStream class directly from pkg
-        // this.actisense = new serial({
-        //     device: this.devicePath,
-        //     app: this,
-        //     outEvent: 'nmea2000out',  // specify the output event name
-        //     reconnect: true,
-        //     baudRate: 115200
-        // });
-
+        this.actisense = new serial({
+            device: this.devicePath,
+            app: this,
+            outEvent: 'nmea2000out',  // specify the output event name
+            reconnect: true,
+            baudRate: 115200
+        });
     }
 
     setupUDP() {
