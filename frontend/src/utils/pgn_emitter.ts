@@ -73,7 +73,9 @@ export const startEmitting = (
     const config = pgnConfigs[pgnKey];
     if (!config) return;
 
-    const interval = config.TransmissionInterval || 1000;
+    // Calculate interval in milliseconds based on rate (Hz)
+    const rate = pgnRates[pgnKey] || 1; // Default to 1Hz if no rate specified
+    const interval = 1000 / rate; // Convert Hz to milliseconds
     
     activeEmissions[pgnKey] = setInterval(() => {
       emitPGNData(pgnKey, config, getLatestState());
