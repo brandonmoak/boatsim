@@ -79,7 +79,14 @@ function Simulation({
     // Only update PGN state
     if (pgnConfig) {
       const pgn129029 = createGNSSPositionData(newPosition, currentTime);
-      onPGNUpdate('129029', pgn129029.fields);
+      console.log('Simulation sending PGN update:', {
+        pgn: '129029',
+        fields: pgn129029.fields
+      });
+      onPGNUpdate('129029', {
+        type: 'value',
+        ...pgn129029.fields
+      });
     }
 
     setBoatPosition(newPosition);
@@ -121,6 +128,7 @@ function Simulation({
     let simulationInterval: NodeJS.Timeout;
 
     if (isSimulating) {
+      console.log('Starting simulation interval');
       simulationInterval = setInterval(() => {
         console.log('Simulation tick');
         updatePosition();
@@ -129,10 +137,11 @@ function Simulation({
 
     return () => {
       if (simulationInterval) {
+        console.log('Clearing simulation interval');
         clearInterval(simulationInterval);
       }
     };
-  }, [isSimulating, boatPosition, onPositionUpdate]);
+  }, [isSimulating]);
 
   return <div />;
 }

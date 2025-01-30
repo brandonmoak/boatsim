@@ -68,10 +68,12 @@ export interface PGNDefinition {
 }
 
 // PGN Update Types
-export type PGNUpdate = 
-  | { type: 'rate'; value: number }
-  | { type: 'value'; field: string; value: number }
-  | Record<string, number>;  // Add this to allow bulk field updates
+export interface PGNUpdate {
+  type: 'rate' | 'value';
+  field?: string;
+  value?: number;
+  [key: string]: any;  // Allow additional fields for bulk updates
+}
 
 // Add PGNPanel props interface
 export interface PGNPanelProps {

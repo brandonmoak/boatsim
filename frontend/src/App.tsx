@@ -58,28 +58,17 @@ function App() {
   };
 
   const handlePGNUpdate = (system: string, update: PGNUpdate) => {
-    if (update.type === 'rate') {
-      setPgnRates(prevRates => {
-        const newRates = {
-          ...prevRates,
-          [system]: update.value
-        };
-        
-        // If we're simulating, restart emission for this PGN
-        if (isSimulating) {
-          stopEmittingPGN(system);
-          console.log('Starting emission for PGN:', system);
-          startEmitting(pgnConfig, () => pgnState, selectedPGNs, newRates);
-        }
-        
-        return newRates;
-      });
+    if (update.type === 'rate' && update.value !== undefined) {
+      setPgnRates(prevRates => ({
+        ...prevRates,
+        [system]: update.value as number
+      }));
     } else {
       setPGNState(prevState => ({
         ...prevState,
         [system]: {
-          ...(prevState[system] || {}),
-          [update.field]: update.value
+          ...prevState[system],
+          ...(update as Record<string, number>)
         }
       }));
     }
@@ -121,14 +110,7 @@ function App() {
         initialPosition={boatPosition}
         pgnState={pgnState}
         onPGNUpdate={(system, updates) => {
-          // Convert the field updates to the new format and ensure values are numbers
-          Object.entries(updates).forEach(([field, value]) => {
-            handlePGNUpdate(system, {
-              type: 'value',
-              field,
-              value: Number(value) // Convert to number explicitly
-            });
-          });
+          handlePGNUpdate(system, updates);
         }}
       />
     </div>
