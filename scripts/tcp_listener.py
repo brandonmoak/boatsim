@@ -3,7 +3,7 @@ import binascii
 import re
 import time
 
-def try_start_commands(conn):
+def try_start_commands(sock):
     """Try different start commands and log responses"""
     commands = [
         (b'\xA1\x01\x00\x00', "N2K request"),
@@ -15,11 +15,11 @@ def try_start_commands(conn):
     for cmd, desc in commands:
         try:
             print(f"\nTrying {desc}: {binascii.hexlify(cmd).decode()}")
-            conn.send(cmd)
+            sock.send(cmd)
             time.sleep(0.5)  # Wait for response
             
             # Check for response
-            data = conn.recv(1024)
+            data = sock.recv(1024)
             if data:
                 print(f"Got response: {binascii.hexlify(data).decode()}")
                 return cmd  # Return the working command
@@ -29,36 +29,26 @@ def try_start_commands(conn):
     
     return None
 
-def listen_tcp(port, host='192.168.34.11', filter_pattern=None):
+def connect_tcp(port, host='192.168.34.11', filter_pattern=None):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('', port))  # Bind to all interfaces
-    sock.listen(1)
-    print(f"Listening for TCP connections on port {port}, accepting data from {host}...")
+    print(f"Connecting to {host}:{port}...")
     
-    while True:
-        conn, addr = sock.accept()
-        client_ip = addr[0]
-        
-        # Only process data from the specified host
-        if client_ip != host:
-            print(f"Rejected connection from unauthorized IP: {client_ip}")
-            conn.close()
-            continue
-            
-        print(f"Accepted connection from {client_ip}")
+    try:
+        sock.connect((host, port))
+        print(f"Connected to {host}:{port}")
         
         # Try to find working start command
-        working_cmd = try_start_commands(conn)
+        working_cmd = try_start_commands(sock)
         if working_cmd:
             print(f"\nFound working command: {binascii.hexlify(working_cmd).decode()}")
         else:
             print("\nNo working command found")
-            conn.close()
-            continue
+            sock.close()
+            return
         
         while True:
             try:
-                data = conn.recv(1024)
+                data = sock.recv(1024)
                 if not data:
                     break
                 
@@ -80,10 +70,14 @@ def listen_tcp(port, host='192.168.34.11', filter_pattern=None):
                         continue
                         
                     print(f"Received hex: {hex_data}")
-            except socket.error:
+            except socket.error as e:
+                print(f"Connection error: {e}")
                 break
                 
-        conn.close()
+    except socket.error as e:
+        print(f"Failed to connect: {e}")
+    finally:
+        sock.close()
         print("Connection closed")
 
 if __name__ == "__main__":
@@ -95,4 +89,4 @@ if __name__ == "__main__":
     
     port = int(sys.argv[1])
     filter_pattern = sys.argv[2] if len(sys.argv) == 3 else None
-    listen_tcp(port, filter_pattern=filter_pattern) 
+    connect_tcp(port, filter_pattern=filter_pattern) 
