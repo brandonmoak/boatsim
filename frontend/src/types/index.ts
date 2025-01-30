@@ -12,11 +12,11 @@ export interface BoatPosition {
 
 export interface SimulationProps {
   isSimulating: boolean;
-  onStartSimulation?: () => void;
   onPositionUpdate: (position: BoatPosition) => void;
   initialPosition: BoatPosition;
   pgnState: Record<string, Record<string, number>>;
-  onPGNUpdate: (system: string, update: PGNUpdate) => void;
+  onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
+  onPGNRateUpdate: (pgnKey: string, rate: number) => void;
 }
 
 export interface ControlsProps {
@@ -79,6 +79,7 @@ export interface PGNUpdate {
 export interface PGNPanelProps {
   pgnState: Record<string, Record<string, number>>;
   pgnRates: Record<string, number>;
-  onPGNUpdate: (pgnKey: string, update: PGNUpdate) => void;
+  onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
+  onPGNRateUpdate: (pgnKey: string, rate: number) => void;
   onSelectedPGNsChange: (pgns: string[]) => void;
 } 

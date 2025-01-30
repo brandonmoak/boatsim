@@ -12,7 +12,13 @@ interface PGNOption {
     label: string;
 }
 
-const PGNPanel = React.memo(({ pgnState, pgnRates, onPGNUpdate, onSelectedPGNsChange }: PGNPanelProps) => {
+const PGNPanel = React.memo(({ 
+  pgnState, 
+  pgnRates, 
+  onPGNFieldsUpdate,
+  onPGNRateUpdate, 
+  onSelectedPGNsChange 
+}: PGNPanelProps) => {
     
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [selectedPGNs, setSelectedPGNs] = useState<string[]>(getDefaultPGNArray());
@@ -35,21 +41,12 @@ const PGNPanel = React.memo(({ pgnState, pgnRates, onPGNUpdate, onSelectedPGNsCh
         }
     }, [selectedPGNs, onSelectedPGNsChange]);
 
-    const handlePGNChange = (pgnKey: string, field: string, value: string | number) => {
-        const numValue = typeof value === 'string' ? parseFloat(value) : value;
-        onPGNUpdate(pgnKey, {
-            type: 'value',
-            field,
-            value: numValue
-        });
+    const handlePGNChange = (pgnKey: string, field: string, value: number) => {
+        onPGNFieldsUpdate(pgnKey, { [field]: value });
     };
 
-    const handleRateChange = (pgnKey: string, value: string | number) => {
-        const numValue = typeof value === 'string' ? parseFloat(value) : value;
-        onPGNUpdate(pgnKey, {
-            type: 'rate',
-            value: numValue
-        });
+    const handleRateChange = (pgnKey: string, value: number) => {
+        onPGNRateUpdate(pgnKey, value);
     };
 
     const handlePGNSelect = (option: PGNOption | null) => {

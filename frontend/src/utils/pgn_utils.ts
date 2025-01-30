@@ -6,7 +6,7 @@ export function createGNSSPositionData(position: BoatPosition, timestamp: Date =
     timestamp: timestamp.getTime(),
     fields: {
       SID: 0,  // Sequence ID
-      Date: timestamp.getUTCDate(),
+      Date: Math.floor((timestamp.getTime() - new Date('1980-01-01').getTime()) / (1000 * 60 * 60 * 24)),
       Time: timestamp.getUTCHours() * 10000 + 
             timestamp.getUTCMinutes() * 100 + 
             timestamp.getUTCSeconds(),

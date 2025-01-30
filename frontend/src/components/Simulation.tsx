@@ -10,7 +10,8 @@ function Simulation({
   onPositionUpdate, 
   initialPosition,
   pgnState,
-  onPGNUpdate
+  onPGNFieldsUpdate,
+  onPGNRateUpdate
 }: SimulationProps) {
   const [boatPosition, setBoatPosition] = useState<BoatPosition>(initialPosition);
   const [pgnConfig, setPGNConfig] = useState<any>(null);
@@ -76,17 +77,14 @@ function Simulation({
       heading: bearing
     };
 
-    // Only update PGN state
+    // Update PGN state
     if (pgnConfig) {
       const pgn129029 = createGNSSPositionData(newPosition, currentTime);
       console.log('Simulation sending PGN update:', {
         pgn: '129029',
         fields: pgn129029.fields
       });
-      onPGNUpdate('129029', {
-        type: 'value',
-        ...pgn129029.fields
-      });
+      onPGNFieldsUpdate('129029', pgn129029.fields);
     }
 
     setBoatPosition(newPosition);

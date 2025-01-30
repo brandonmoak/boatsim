@@ -57,21 +57,31 @@ function App() {
     stopEmitting();
   };
 
-  const handlePGNUpdate = (system: string, update: PGNUpdate) => {
-    if (update.type === 'rate' && update.value !== undefined) {
-      setPgnRates(prevRates => ({
-        ...prevRates,
-        [system]: update.value as number
-      }));
-    } else {
-      setPGNState(prevState => ({
-        ...prevState,
-        [system]: {
-          ...prevState[system],
-          ...(update as Record<string, number>)
-        }
-      }));
+  const handlePGNFieldsUpdate = (system: string, fields: Record<string, number>) => {
+    setPGNState(prevState => ({
+      ...prevState,
+      [system]: {
+        ...prevState[system],
+        ...fields
+      }
+    }));
+  };
+
+  const handlePGNRateUpdate = (system: string, rate: number) => {
+    setPgnRates(prevRates => ({
+      ...prevRates,
+      [system]: rate
+    }));
+    
+    // If currently simulating, restart the emitter with the new rates
+    if (isSimulating) {
+      stopEmitting();
+      startEmitting(pgnConfig, () => pgnState, selectedPGNs, {
+        ...pgnRates,
+        [system]: rate
+      });
     }
+    console.log('PGN rate updated:', system, rate);
   };
 
   const handleSelectedPGNsChange = (newSelectedPGNs: string[]) => {
@@ -99,7 +109,8 @@ function App() {
           <PGNPanel 
             pgnState={pgnState}
             pgnRates={pgnRates}
-            onPGNUpdate={handlePGNUpdate}
+            onPGNFieldsUpdate={handlePGNFieldsUpdate}
+            onPGNRateUpdate={handlePGNRateUpdate}
             onSelectedPGNsChange={handleSelectedPGNsChange}
           />
         </div>
@@ -109,9 +120,8 @@ function App() {
         onPositionUpdate={setBoatPosition}
         initialPosition={boatPosition}
         pgnState={pgnState}
-        onPGNUpdate={(system, updates) => {
-          handlePGNUpdate(system, updates);
-        }}
+        onPGNFieldsUpdate={handlePGNFieldsUpdate}
+        onPGNRateUpdate={handlePGNRateUpdate}
       />
     </div>
   );
