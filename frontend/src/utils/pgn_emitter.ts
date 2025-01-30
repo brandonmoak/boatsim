@@ -62,7 +62,7 @@ export const startEmitting = (
 ) => {
   // Stop any existing emissions
   timerWorker.postMessage({ type: 'stop' });
-  
+
   // Create array of unique PGNs including required PGNs
   const pgnsToEmit = Array.from(new Set([...selectedPGNs, ...REQUIRED_PGNS]));
 
@@ -89,7 +89,9 @@ export const startEmitting = (
     const { pgnKey } = e.data;
     const config = pgnConfigs[pgnKey];
     if (config) {
-      emitPGNData(pgnKey, config, getLatestState());
+      // Get current state and immediately emit
+      const currentState = getLatestState();
+      emitPGNData(pgnKey, config, currentState);
     }
   };
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 // Components
 import Map from './components/Map';
@@ -19,6 +19,7 @@ function App() {
   // Create state variables
   const [isSimulating, setIsSimulating] = useState(false);
   const [pgnState, setPGNState] = useState<Record<string, Record<string, number>>>({});
+  const pgnStateRef = useRef(pgnState);
   const [pgnConfig, setPgnConfig] = useState<Record<string, any>>({});
   const [boatPosition, setBoatPosition] = useState<BoatPosition>({ lat: 44.6476, lon: -63.5728, heading: 0 });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
@@ -45,10 +46,14 @@ function App() {
     console.log('PGN state:', pgnState);
   }, [pgnState]);
 
+  useEffect(() => {
+    pgnStateRef.current = pgnState;
+  }, [pgnState]);
+
   const handleStart = () => {
     setIsSimulating(true);
     console.log('Starting simulation');
-    startEmitting(pgnConfig, () => pgnState, selectedPGNs, pgnRates);
+    startEmitting(pgnConfig, () => pgnStateRef.current, selectedPGNs, pgnRates);
   };
 
   const handleStop = () => {
@@ -72,10 +77,9 @@ function App() {
       [system]: rate
     }));
     
-    // If currently simulating, restart the emitter with the new rates
     if (isSimulating) {
       stopEmitting();
-      startEmitting(pgnConfig, () => pgnState, selectedPGNs, {
+      startEmitting(pgnConfig, () => pgnStateRef.current, selectedPGNs, {
         ...pgnRates,
         [system]: rate
       });
@@ -89,7 +93,7 @@ function App() {
     if (isSimulating) {
       stopEmitting();
       console.log('Handling selected PGN change:', newSelectedPGNs);
-      startEmitting(pgnConfig, () => pgnState, newSelectedPGNs, pgnRates);
+      startEmitting(pgnConfig, () => pgnStateRef.current, newSelectedPGNs, pgnRates);
     }
   };
 
