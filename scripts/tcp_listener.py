@@ -1,6 +1,33 @@
 import socket
 import binascii
 import re
+import time
+
+def try_start_commands(conn):
+    """Try different start commands and log responses"""
+    commands = [
+        (b'\xA1\x01\x00\x00', "N2K request"),
+        (b'\x11\x02\x00\x00', "NMEA 0183 request"),
+        (b'\x11\x01\x00\x00', "Alternative request 1"),
+        (b'\x91\x01\x00\x00', "Alternative request 2")
+    ]
+    
+    for cmd, desc in commands:
+        try:
+            print(f"\nTrying {desc}: {binascii.hexlify(cmd).decode()}")
+            conn.send(cmd)
+            time.sleep(0.5)  # Wait for response
+            
+            # Check for response
+            data = conn.recv(1024)
+            if data:
+                print(f"Got response: {binascii.hexlify(data).decode()}")
+                return cmd  # Return the working command
+            
+        except socket.error as e:
+            print(f"Error with {desc}: {e}")
+    
+    return None
 
 def listen_tcp(port, host='192.168.34.11', filter_pattern=None):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,6 +46,15 @@ def listen_tcp(port, host='192.168.34.11', filter_pattern=None):
             continue
             
         print(f"Accepted connection from {client_ip}")
+        
+        # Try to find working start command
+        working_cmd = try_start_commands(conn)
+        if working_cmd:
+            print(f"\nFound working command: {binascii.hexlify(working_cmd).decode()}")
+        else:
+            print("\nNo working command found")
+            conn.close()
+            continue
         
         while True:
             try:
