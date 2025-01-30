@@ -59,20 +59,17 @@ export function getInitialPGNState(config: Record<string, PGNDefinition>): PGNDe
     
     const defaultPGNs = getDefaultPGNs();
     // For each default PGN
-    getDefaultPGNArray().forEach(pgn => {
-        const pgnKey = String(pgn);
-        const pgnDefinition = config[pgnKey];  // Get first definition
+    Object.entries(config).forEach(([pgnKey, pgnDefinition]) => {
+        // Initialize state for this PGN
+        state[pgnKey] = {};
+        
+        // If we have defaults for this PGN, use them, otherwise initialize to 0
         const pgnDefault = defaultPGNs[pgnKey] ?? {};
-
-        if (pgnDefinition) {
-            // Initialize each field with a default value (0) or from the default PGN
-            state[pgnKey] = {};
-            pgnDefinition.Fields.forEach(field => {
-                state[pgnKey][field.Name] = pgnDefault[field.Name] ?? 0;
-            });
-        } else {
-            state[pgnKey] = {};
-        }
+        
+        // Initialize each field with either the default value or 0
+        pgnDefinition.Fields.forEach(field => {
+            state[pgnKey][field.Name] = pgnDefault[field.Name] ?? 0;
+        });
     });
 
     return state;
