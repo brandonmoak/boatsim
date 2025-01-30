@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { BoatPosition, SimulationProps, Waypoint } from '../types';
+import { BoatPosition, SimulationProps, Waypoint, PGNUpdate } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
 import { loadWaypoints} from '../utils/waypoint_loader';
 import { createGNSSPositionData } from '../utils/pgn_utils';
+import { emitPGNData } from '../utils/pgn_emitter';
 
 function Simulation({ 
   isSimulating, 
@@ -45,12 +46,12 @@ function Simulation({
     
     // Calculate distance to waypoint
     const distance = calculateDistance(boatPosition.lat, boatPosition.lon, targetLat, targetLon);
-    console.log(`Navigating to waypoint ${currentWaypointIndex}:`, {
-      distance: distance.toFixed(3) + ' km',
-      bearing: bearing.toFixed(1) + '°',
-      target: { lat: targetLat, lon: targetLon },
-      current: { lat: boatPosition.lat, lon: boatPosition.lon }
-    });
+    // console.log(`Navigating to waypoint ${currentWaypointIndex}:`, {
+    //   distance: distance.toFixed(3) + ' km',
+    //   bearing: bearing.toFixed(1) + '°',
+    //   target: { lat: targetLat, lon: targetLon },
+    //   current: { lat: boatPosition.lat, lon: boatPosition.lon }
+    // });
 
     // Check if we've reached the waypoint (within 0.1 km)
     if (distance < 0.1) {
@@ -72,16 +73,15 @@ function Simulation({
     const newPosition = {
       lat: boatPosition.lat + deltaLat,
       lon: boatPosition.lon + deltaLon,
-      heading: bearing // Update heading to point towards waypoint
+      heading: bearing
     };
 
-    // Emit PGN 129029 - GNSS Position Data
-    if (pgnConfig && onPGNUpdate) {
+    // Only update PGN state
+    if (pgnConfig) {
       const pgn129029 = createGNSSPositionData(newPosition, currentTime);
       onPGNUpdate('129029', pgn129029.fields);
     }
 
-    console.log('setting boat position:', newPosition);
     setBoatPosition(newPosition);
     setLastUpdate(currentTime);
     onPositionUpdate(newPosition);

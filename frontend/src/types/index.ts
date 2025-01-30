@@ -16,7 +16,7 @@ export interface SimulationProps {
   onPositionUpdate: (position: BoatPosition) => void;
   initialPosition: BoatPosition;
   pgnState: Record<string, Record<string, number>>;
-  onPGNUpdate: (system: string, updates: Record<string, number>) => void;
+  onPGNUpdate: (system: string, update: PGNUpdate) => void;
 }
 
 export interface ControlsProps {
@@ -65,4 +65,18 @@ export interface PGNDefinition {
     Complete?: boolean;
     FieldCount?: number;
     TransmissionInterval?: number;
+}
+
+// PGN Update Types
+export type PGNUpdate = 
+  | { type: 'rate'; value: number }
+  | { type: 'value'; field: string; value: number }
+  | Record<string, number>;  // Add this to allow bulk field updates
+
+// Add PGNPanel props interface
+export interface PGNPanelProps {
+  pgnState: Record<string, Record<string, number>>;
+  pgnRates: Record<string, number>;
+  onPGNUpdate: (pgnKey: string, update: PGNUpdate) => void;
+  onSelectedPGNsChange: (pgns: string[]) => void;
 } 
