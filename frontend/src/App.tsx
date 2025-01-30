@@ -8,7 +8,6 @@ import Simulation from './components/Simulation';
 // Types
 import { 
   BoatPosition, 
-  PGNUpdate, 
 } from './types';
 // Utils
 import { initSocket } from './utils/socket';

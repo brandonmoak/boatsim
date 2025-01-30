@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { BoatPosition, SimulationProps, Waypoint, PGNUpdate } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
 import { loadWaypoints} from '../utils/waypoint_loader';
-import { createGNSSPositionData } from '../utils/pgn_utils';
-import { emitPGNData } from '../utils/pgn_emitter';
+import { 
+  createGNSSPositionData, 
+  createRapidPositionData, 
+  createCOGSOGData, 
+  createSystemTimeData 
+} from '../utils/pgn_utils';
 
 function Simulation({ 
   isSimulating, 
@@ -77,14 +81,26 @@ function Simulation({
       heading: bearing
     };
 
-    // Update PGN state
+    // Update PGN states
     if (pgnConfig) {
+      // Create all PGN messages with the same timestamp
+      const currentTime = new Date();
+      
+      // GNSS Position Data (129029)
       const pgn129029 = createGNSSPositionData(newPosition, currentTime);
-      console.log('Simulation sending PGN update:', {
-        pgn: '129029',
-        fields: pgn129029.fields
-      });
       onPGNFieldsUpdate('129029', pgn129029.fields);
+
+      // Rapid Position Data (129025)
+      const pgn129025 = createRapidPositionData(newPosition, currentTime);
+      onPGNFieldsUpdate('129025', pgn129025.fields);
+
+      // COG & SOG Data (129026)
+      const pgn129026 = createCOGSOGData(newPosition, currentTime);
+      onPGNFieldsUpdate('129026', pgn129026.fields);
+
+      // System Time (126992)
+      const pgn126992 = createSystemTimeData(currentTime);
+      onPGNFieldsUpdate('126992', pgn126992.fields);
     }
 
     setBoatPosition(newPosition);

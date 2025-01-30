@@ -12,7 +12,8 @@ interface PGNConfig {
 type EmissionIntervals = Record<string, number>;
 let activeEmissions: EmissionIntervals = {};
 
-const GPS_PGN = '129029';
+// Required PGNs that should always be emitted
+const REQUIRED_PGNS = ['129029', '126992', '129025', '129026'];
 
 // Create a Web Worker for timing
 const timerWorker = new Worker(
@@ -62,10 +63,8 @@ export const startEmitting = (
   // Stop any existing emissions
   timerWorker.postMessage({ type: 'stop' });
   
-  // Create array of unique PGNs including GPS
-  const pgnsToEmit = selectedPGNs.includes(GPS_PGN) 
-    ? selectedPGNs 
-    : [...selectedPGNs, GPS_PGN];
+  // Create array of unique PGNs including required PGNs
+  const pgnsToEmit = Array.from(new Set([...selectedPGNs, ...REQUIRED_PGNS]));
 
   console.log('PGNs to emit:', pgnsToEmit);
 
