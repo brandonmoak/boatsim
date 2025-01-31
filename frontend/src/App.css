@@ -39,7 +39,7 @@
 
 .pgn-panel-header {
   flex: 0 0 auto;
-  padding: 15px;
+  padding: 15px 15px 15px 15px;
   border-bottom: 1px solid #ddd;
   background: white;
 }

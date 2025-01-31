@@ -67,14 +67,12 @@ const PGNPanel = React.memo(({
     return (
         <div className="pgn-panel">
             <div className="pgn-panel-header">
-                <h3>NMEA 2000 Parameters</h3>
-                
                 <div className="pgn-selector">
                     <Select
                         options={pgnOptions}
                         onChange={handlePGNSelect}
                         value={null}
-                        placeholder="Add PGN..."
+                        placeholder="Add NMEA 2000 PGN"
                         className="pgn-select-container"
                         classNamePrefix="pgn-select"
                         isClearable={false}
