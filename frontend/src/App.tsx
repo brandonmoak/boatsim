@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 // Components
 import Map from './components/Map';
-import Controls from './components/Controls';
 import PGNPanel from './components/PGNPanel';
 import Simulation from './components/Simulation';
 // Types
@@ -13,7 +12,7 @@ import {
 // Utils
 import { initSocket } from './utils/socket';
 import { loadPGNConfig, getInitialPGNState } from './utils/pgn_loader';
-import { startEmitting, stopEmitting, stopEmittingPGN } from './utils/pgn_emitter';
+import { startEmitting, stopEmitting} from './utils/pgn_emitter';
 import { loadWaypoints } from './utils/waypoint_loader';
 
 
