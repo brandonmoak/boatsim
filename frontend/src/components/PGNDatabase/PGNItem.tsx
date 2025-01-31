@@ -13,6 +13,7 @@ interface PGNItemProps {
   onAddToSimulation: (pgn: string) => void;
   editedValues: Record<string, Record<string, number>>;
   onValueChange: (pgn: string, fieldName: string, value: string) => void;
+  isSelected: (pgn: string) => boolean;
 }
 
 const PGNItem: React.FC<PGNItemProps> = ({
@@ -24,7 +25,8 @@ const PGNItem: React.FC<PGNItemProps> = ({
   onAddToDefaults,
   onAddToSimulation,
   editedValues,
-  onValueChange
+  onValueChange,
+  isSelected
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(true);
 
@@ -99,7 +101,7 @@ const PGNItem: React.FC<PGNItemProps> = ({
               Add to Default
             </button>
           )}
-          {activeTab === 'all' && (
+          {activeTab === 'all' && !isSelected(pgn) && (
             <button
               className="add-to-simulation-button"
               onClick={(e) => {

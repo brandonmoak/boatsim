@@ -7,7 +7,6 @@ const PGNDatabaseHeader: React.FC<HeaderProps> = ({
   setActiveTab,
   searchTerm,
   setSearchTerm,
-  selectedPGN,
   pgnOptions,
   handleAddDefault,
   onClose

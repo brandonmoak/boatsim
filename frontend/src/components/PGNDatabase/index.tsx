@@ -10,11 +10,11 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
   pgnDefinitions,
   defaultPGNs,
   onUpdateDefaults,
+  selectedPGNs,
   onAddToSimulation
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPGN, setSelectedPGN] = useState<string | null>(null);
 
   const pgnOptions = useMemo(() => 
     Object.entries(pgnDefinitions).map(([key, def]) => ({
@@ -30,7 +30,6 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
         ...defaultPGNs,
         [option.value]: {}
       };
-      setSelectedPGN(option.value);
       onUpdateDefaults(newValues);
     }
   };
@@ -83,7 +82,6 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
           setActiveTab={setActiveTab}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedPGN={selectedPGN}
           pgnOptions={pgnOptions}
           handleAddDefault={handleAddDefault}
           onClose={onClose}
@@ -101,6 +99,7 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
               onAddToSimulation={onAddToSimulation}
               editedValues={defaultPGNs}
               onValueChange={handleValueChange}
+              isSelected={(p) => selectedPGNs.includes(p)}
             />
           ))}
         </div>

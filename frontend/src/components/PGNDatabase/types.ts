@@ -6,6 +6,7 @@ export interface PGNDatabaseProps {
   pgnDefinitions: Record<string, PGNDefinition>;
   defaultPGNs: Record<string, Record<string, number>>;
   onUpdateDefaults: (newDefaults: Record<string, Record<string, number>>) => void;
+  selectedPGNs: string[];
   onAddToSimulation: (pgn: string) => void;
 }
 
@@ -16,7 +17,6 @@ export interface HeaderProps {
   setActiveTab: (tab: TabType) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  selectedPGN: string | null;
   pgnOptions: Array<{ value: string; label: string }>;
   handleAddDefault: (option: { value: string; label: string } | null) => void;
   onClose: () => void;
@@ -29,6 +29,8 @@ export interface PGNItemProps {
   activeTab: TabType;
   onRemoveDefault: (pgn: string) => void;
   onAddToDefaults: (pgn: string) => void;
+  onAddToSimulation: (pgn: string) => void;
   editedValues: Record<string, Record<string, number>>;
   onValueChange: (pgn: string, fieldName: string, value: string) => void;
+  isSelected: (pgn: string) => boolean;
 } 

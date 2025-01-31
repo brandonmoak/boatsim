@@ -175,6 +175,7 @@ function App() {
             pgnDefinitions={pgnConfig}
             defaultPGNs={defaultPGNs}
             onUpdateDefaults={updateDefaultPGNs}
+            selectedPGNs={selectedPGNs}
             onAddToSimulation={handleAddToSimulation}
           />
         </div>
