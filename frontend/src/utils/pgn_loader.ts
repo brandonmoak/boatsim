@@ -15,7 +15,7 @@ export function getDefaultPGNArray(): string[] {
     return typedPGNConfig.default_pgns.map((element: YamlPGNDefaultsElement) => String(element.pgnId));
 }
 
-function getDefaultPGNs(): PGNDefaults {
+export function getDefaultPGNs(): PGNDefaults {
     const res: PGNDefaults = {};
     typedPGNConfig.default_pgns.forEach((pgn: YamlPGNDefaultsElement) => {
         const pgnKey = String(pgn.pgnId);
@@ -156,4 +156,4 @@ export function getInitialPGNState(config: Record<string, PGNDefinition>): PGNDe
     });
 
     return state;
-} 
+}

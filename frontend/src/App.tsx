@@ -4,15 +4,16 @@ import './App.css';
 import Map from './components/Map';
 import PGNPanel from './components/PGNPanel';
 import Simulation from './components/Simulation';
-import PGNDatabaseViewer from './components/PGNDatabaseViewer';
+import PGNDatabase from './components/PGNDatabase';
 // Types
 import { 
   BoatState, 
-  Waypoint
+  Waypoint,
+  PGNDefinition
 } from './types';
 // Utils
 import { initSocket } from './utils/socket';
-import { loadPGNConfig, getInitialPGNState } from './utils/pgn_loader';
+import { loadPGNConfig, getInitialPGNState, getDefaultPGNs } from './utils/pgn_loader';
 import { startEmitting, stopEmitting} from './utils/pgn_emitter';
 import { loadWaypoints } from './utils/waypoint_loader';
 
@@ -28,16 +29,21 @@ function App() {
   const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
+  const [defaultPGNs, setDefaultPGNs] = useState<Record<string, Record<string, number>>>({});
 
   useEffect(() => {
     initSocket();
     Promise.all([
       loadPGNConfig(),
-      loadWaypoints()
-    ]).then(([config, loadedWaypoints]) => {
+      loadWaypoints(),
+      getDefaultPGNs()
+    ]).then(([config, loadedWaypoints, defaults]) => {
       setPgnConfig(config);
       setPGNState(getInitialPGNState(config));
       setWaypoints(loadedWaypoints);
+      setDefaultPGNs(defaults);
+      setSelectedPGNs(Object.keys(defaults));
+      
       // Initialize rates using TransmissionInterval from config (converting ms to Hz)
       const initialRates = Object.keys(config).reduce((acc, pgn) => {
         const interval = config[pgn]?.TransmissionInterval;
@@ -122,6 +128,20 @@ function App() {
     }
   };
 
+  // Function to update defaults that we can pass down
+  const updateDefaultPGNs = (newDefaults: Record<string, Record<string, number>>) => {
+    setDefaultPGNs(newDefaults);
+    // TODO: When backend is ready, make API call here
+  };
+
+  const handleAddToSimulation = (pgn: string) => {
+    console.log('Adding PGN to simulation:', pgn);
+    if (!selectedPGNs.includes(pgn)) {
+      const newSelectedPGNs = [...selectedPGNs, pgn];
+      handleSelectedPGNsChange(newSelectedPGNs);
+    }
+  };
+
   return (
     <div className="App">
       <div className="main-container">
@@ -144,14 +164,18 @@ function App() {
           <PGNPanel 
             pgnState={pgnState}
             pgnRates={pgnRates}
+            selectedPGNs={selectedPGNs}
             onPGNFieldsUpdate={handlePGNFieldsUpdate}
             onPGNRateUpdate={handlePGNRateUpdate}
             onSelectedPGNsChange={handleSelectedPGNsChange}
           />
-          <PGNDatabaseViewer
+          <PGNDatabase
             isOpen={isDatabaseViewerOpen}
             onClose={() => setIsDatabaseViewerOpen(false)}
             pgnDefinitions={pgnConfig}
+            defaultPGNs={defaultPGNs}
+            onUpdateDefaults={updateDefaultPGNs}
+            onAddToSimulation={handleAddToSimulation}
           />
         </div>
       </div>
