@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { BoatPosition } from '../types';
+import { BoatState } from '../types';
 
 export const createBoatIcon = (heading: number): L.DivIcon => {
   return L.divIcon({
@@ -16,7 +16,7 @@ export const createBoatIcon = (heading: number): L.DivIcon => {
   });
 };
 
-export const createBoatMarker = (position: BoatPosition): L.Marker => {
+export const createBoatMarker = (position: BoatState): L.Marker => {
   return L.marker([position.lat, position.lon], {
     icon: createBoatIcon(position.heading),
   });

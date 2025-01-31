@@ -4,16 +4,17 @@ export interface Waypoint {
     lon: number;
   } 
 
-export interface BoatPosition {
+export interface BoatState {
   lat: number;
   lon: number;
   heading: number;
+  speed: number;  // Speed in knots
 }
 
 export interface SimulationProps {
   isSimulating: boolean;
-  onPositionUpdate: (position: BoatPosition) => void;
-  initialPosition: BoatPosition;
+  onPositionUpdate: (position: BoatState) => void;
+  initialPosition: BoatState;
   onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
   waypoints: Waypoint[];
 }

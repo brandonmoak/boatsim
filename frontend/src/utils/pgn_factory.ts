@@ -1,4 +1,4 @@
-import { BoatPosition } from '../types';
+import { BoatState } from '../types';
 
 function getDaysSinceEpoch(timestamp: Date): number {
   return Math.floor((timestamp.getTime() - new Date('1980-01-01').getTime()) / (1000 * 60 * 60 * 24));
@@ -10,7 +10,7 @@ function getSecondsSinceMidnight(timestamp: Date): number {
          timestamp.getUTCSeconds();
 }
 
-export function createGNSSPositionData(position: BoatPosition, timestamp: Date = new Date()) {
+export function createGNSSPositionData(position: BoatState, timestamp: Date = new Date()) {
   return {
     pgn: 129029,
     timestamp: timestamp.getTime(),
@@ -37,7 +37,7 @@ export function createGNSSPositionData(position: BoatPosition, timestamp: Date =
   };
 }
 
-export function createRapidPositionData(position: BoatPosition, timestamp: Date = new Date()) {
+export function createRapidPositionData(position: BoatState, timestamp: Date = new Date()) {
   return {
     pgn: 129025,
     timestamp: timestamp.getTime(),
@@ -48,7 +48,7 @@ export function createRapidPositionData(position: BoatPosition, timestamp: Date 
   };
 }
 
-export function createCOGSOGData(position: BoatPosition, timestamp: Date = new Date()) {
+export function createCOGSOGData(position: BoatState, timestamp: Date = new Date()) {
   // Convert heading from degrees to radians
   const cogRadians = (position.heading * Math.PI) / 180;
   
@@ -77,6 +77,23 @@ export function createSystemTimeData(timestamp: Date = new Date()) {
       Source: 0,  // GPS
       Date: getDaysSinceEpoch(timestamp),
       Time: getSecondsSinceMidnight(timestamp)
+    }
+  };
+}
+
+export function createSpeedData(position: BoatState, timestamp: Date = new Date()) {
+  // Convert speed from knots to meters per second (1 knot = 0.514444 m/s)
+  const speedMetersPerSecond = position.speed * 0.514444;
+
+  return {
+    pgn: 128259,
+    timestamp: timestamp.getTime(),
+    fields: {
+      SID: 0,                           // Sequence ID
+      Speed_Water_Referenced: speedMetersPerSecond,
+      Speed_Ground_Referenced: speedMetersPerSecond,
+      Speed_Water_Referenced_Type: 1,    // Paddle wheel
+      Speed_Direction: 0                 // Forward
     }
   };
 } 

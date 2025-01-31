@@ -2,15 +2,26 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
-import { BoatPosition, Waypoint } from '../types';
+import { BoatState, Waypoint } from '../types';
 import { createBoatMarker, createBoatIcon } from './Boat';
+import NavigationDisplay from './NavigationDisplay';
+import Controls from './Controls';
 
 interface MapProps {
-  boatPosition: BoatPosition;
+  boatPosition: BoatState;
   waypoints: Waypoint[];
+  onStart: () => void;
+  onStop: () => void;
+  isSimulating: boolean;
 }
 
-const Map: React.FC<MapProps> = ({ boatPosition, waypoints }) => {
+const Map: React.FC<MapProps> = ({ 
+  boatPosition, 
+  waypoints,
+  onStart,
+  onStop,
+  isSimulating
+}) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const waypointLayerRef = useRef<L.LayerGroup | null>(null);
@@ -22,7 +33,7 @@ const Map: React.FC<MapProps> = ({ boatPosition, waypoints }) => {
     }).addTo(mapRef.current);
 
     // Create boat marker
-    markerRef.current = createBoatMarker({ lat: 0, lon: 0, heading: 0 }).addTo(mapRef.current);
+    markerRef.current = createBoatMarker({ lat: 0, lon: 0, heading: 0, speed: 0}).addTo(mapRef.current);
     
     // Create waypoint layer group
     waypointLayerRef.current = L.layerGroup().addTo(mapRef.current);
@@ -80,7 +91,18 @@ const Map: React.FC<MapProps> = ({ boatPosition, waypoints }) => {
     }
   }, [waypoints]);
 
-  return <div id="map" />;
+  return (
+    <div id="map">
+      <div className="floating-controls-container">
+        <Controls 
+          onStart={onStart}
+          onStop={onStop}
+          isRunning={isSimulating}
+        />
+        <NavigationDisplay boatPosition={boatPosition} />
+      </div>
+    </div>
+  );
 };
 
 export default Map;

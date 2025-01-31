@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import LatLon from 'geodesy/latlon-spherical.js';
-import { BoatPosition, SimulationProps } from '../types';
+import { BoatState, SimulationProps } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
 import { 
   createGNSSPositionData, 
   createRapidPositionData, 
   createCOGSOGData, 
   createSystemTimeData 
-} from '../utils/pgn_utils';
+} from '../utils/pgn_factory';
 
 function Simulation({ 
   isSimulating, 
@@ -16,7 +16,7 @@ function Simulation({
   onPGNFieldsUpdate,
   waypoints
 }: SimulationProps) {
-  const [boatPosition, setBoatPosition] = useState<BoatPosition>(initialPosition);
+  const [boatPosition, setBoatPosition] = useState<BoatState>(initialPosition);
   const [pgnConfig, setPGNConfig] = useState<any>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState<number>(0);
@@ -91,7 +91,8 @@ function Simulation({
     const newPosition = {
       lat: newPoint.lat,
       lon: newPoint.lon,
-      heading: bearing
+      heading: bearing,
+      speed: speed
     };
 
     // Validate new position before updating

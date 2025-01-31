@@ -7,7 +7,7 @@ import PGNPanel from './components/PGNPanel';
 import Simulation from './components/Simulation';
 // Types
 import { 
-  BoatPosition, 
+  BoatState, 
   Waypoint
 } from './types';
 // Utils
@@ -23,7 +23,12 @@ function App() {
   const [pgnState, setPGNState] = useState<Record<string, Record<string, number>>>({});
   const pgnStateRef = useRef(pgnState);
   const [pgnConfig, setPgnConfig] = useState<Record<string, any>>({});
-  const [boatPosition, setBoatPosition] = useState<BoatPosition>({ lat: 44.6476, lon: -63.5728, heading: 0 });
+  const [boatPosition, setBoatPosition] = useState<BoatState>({ 
+    lat: 44.6476, 
+    lon: -63.5728, 
+    heading: 0,
+    speed: 10  // Added speed in knots
+  });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
   const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
@@ -111,11 +116,9 @@ function App() {
           <Map 
             boatPosition={boatPosition} 
             waypoints={waypoints}
-          />
-          <Controls 
-            onStart={handleStart} 
-            onStop={handleStop} 
-            isRunning={isSimulating}
+            onStart={handleStart}
+            onStop={handleStop}
+            isSimulating={isSimulating}
           />
         </div>
         <div className="pgn-container">
