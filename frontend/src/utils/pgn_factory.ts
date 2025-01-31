@@ -15,24 +15,24 @@ export function createGNSSPositionData(position: BoatState, timestamp: Date = ne
     pgn: 129029,
     timestamp: timestamp.getTime(),
     fields: {
-      SID: 0,  // Sequence ID
+      // SID: 0,  // Sequence ID
       Date: getDaysSinceEpoch(timestamp),
       Time: timestamp.getUTCHours() * 10000 + 
             timestamp.getUTCMinutes() * 100 + 
             timestamp.getUTCSeconds(),
       Latitude: position.lat,
       Longitude: position.lon,
-      Altitude: 0.0, // Assuming sea level
-      GNSS_type: 0, // GPS
+      // Altitude: 0.0, // Assuming sea level
+      // GNSS_type: 0, // GPS
       Method: 1, // GNSS fix
       Integrity: 0, // No integrity checking
       Number_of_SVs: 10, // Simulated number of satellites
       HDOP: 1.0, // Horizontal dilution of precision
       PDOP: 1.0, // Position dilution of precision
-      GeoidalSeparation: 0.0,
-      Reference_Stations: 0,
-      Reference_Station_Type: 0,
-      Reference_Station_ID: 0
+      // GeoidalSeparation: 0.0,
+      // Reference_Stations: 0,
+      // Reference_Station_Type: 0,
+      // Reference_Station_ID: 0
     }
   };
 }
@@ -60,8 +60,8 @@ export function createCOGSOGData(position: BoatState, timestamp: Date = new Date
     pgn: 129026,
     timestamp: timestamp.getTime(),
     fields: {
-      SID: 0,
-      COG_Reference: 0, // True (0), Magnetic (1)
+      // SID: 0,
+      // "COG Reference": 0, // True (0), Magnetic (1)
       COG: cogRadians,  // Course Over Ground in radians
       SOG: sogMetersPerSecond  // Speed Over Ground in m/s
     }
@@ -73,8 +73,8 @@ export function createSystemTimeData(timestamp: Date = new Date()) {
     pgn: 126992,
     timestamp: timestamp.getTime(),
     fields: {
-      SID: 0,  // Sequence ID
-      Source: 0,  // GPS
+      // SID: 0,  // Sequence ID
+      // Source: 0,  // GPS
       Date: getDaysSinceEpoch(timestamp),
       Time: getSecondsSinceMidnight(timestamp)
     }
@@ -83,17 +83,17 @@ export function createSystemTimeData(timestamp: Date = new Date()) {
 
 export function createSpeedData(position: BoatState, timestamp: Date = new Date()) {
   // Convert speed from knots to meters per second (1 knot = 0.514444 m/s)
-  const speedMetersPerSecond = position.speed * 0.514444;
+  const speedMetersPerSecond = position.speed_mps;
 
   return {
     pgn: 128259,
     timestamp: timestamp.getTime(),
     fields: {
-      SID: 0,                           // Sequence ID
-      Speed_Water_Referenced: speedMetersPerSecond,
-      Speed_Ground_Referenced: speedMetersPerSecond,
-      Speed_Water_Referenced_Type: 1,    // Paddle wheel
-      Speed_Direction: 0                 // Forward
+      // SID: 0,                           // Sequence ID
+      "Speed Water Referenced": speedMetersPerSecond,
+      "Speed Ground Referenced": speedMetersPerSecond,
+      // Speed_Water_Referenced_Type: 1,    // Paddle wheel
+      // Speed_Direction: 0                 // Forward
     }
   };
 } 

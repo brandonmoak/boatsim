@@ -8,15 +8,15 @@ export interface BoatState {
   lat: number;
   lon: number;
   heading: number;
-  speed: number;  // Speed in knots
+  speed_mps: number;  // Speed in meters per second
 }
 
 export interface SimulationProps {
   isSimulating: boolean;
-  onPositionUpdate: (position: BoatState) => void;
-  initialPosition: BoatState;
   onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
   waypoints: Waypoint[];
+  boatState: BoatState;
+  setBoatState: (state: BoatState) => void;
 }
 
 export interface ControlsProps {

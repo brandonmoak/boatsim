@@ -8,7 +8,7 @@ import NavigationDisplay from './NavigationDisplay';
 import Controls from './Controls';
 
 interface MapProps {
-  boatPosition: BoatState;
+  boatState: BoatState;
   waypoints: Waypoint[];
   onStart: () => void;
   onStop: () => void;
@@ -16,7 +16,7 @@ interface MapProps {
 }
 
 const Map: React.FC<MapProps> = ({ 
-  boatPosition, 
+  boatState, 
   waypoints,
   onStart,
   onStop,
@@ -33,7 +33,7 @@ const Map: React.FC<MapProps> = ({
     }).addTo(mapRef.current);
 
     // Create boat marker
-    markerRef.current = createBoatMarker({ lat: 0, lon: 0, heading: 0, speed: 0}).addTo(mapRef.current);
+    markerRef.current = createBoatMarker({ lat: 0, lon: 0, heading: 0, speed_mps: 0}).addTo(mapRef.current);
     
     // Create waypoint layer group
     waypointLayerRef.current = L.layerGroup().addTo(mapRef.current);
@@ -56,12 +56,12 @@ const Map: React.FC<MapProps> = ({
 
   useEffect(() => {
     if (markerRef.current && mapRef.current) {
-      const newPos: L.LatLngExpression = [boatPosition.lat, boatPosition.lon];
+      const newPos: L.LatLngExpression = [boatState.lat, boatState.lon];
       markerRef.current.setLatLng(newPos);
-      markerRef.current.setIcon(createBoatIcon(boatPosition.heading));
+      markerRef.current.setIcon(createBoatIcon(boatState.heading));
       mapRef.current.panTo(newPos);
     }
-  }, [boatPosition]);
+  }, [boatState]);
 
   useEffect(() => {
     if (waypointLayerRef.current && mapRef.current) {
@@ -99,7 +99,7 @@ const Map: React.FC<MapProps> = ({
           onStop={onStop}
           isRunning={isSimulating}
         />
-        <NavigationDisplay boatPosition={boatPosition} />
+        <NavigationDisplay boatState={boatState} />
       </div>
     </div>
   );

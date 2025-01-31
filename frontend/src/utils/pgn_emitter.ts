@@ -13,7 +13,7 @@ type EmissionIntervals = Record<string, number>;
 let activeEmissions: EmissionIntervals = {};
 
 // Required PGNs that should always be emitted
-const REQUIRED_PGNS = ['129029', '126992', '129025', '129026'];
+const REQUIRED_PGNS = ['129029', '126992', '129025', '129026', '128259'];
 
 // Create a Web Worker for timing
 const timerWorker = new Worker(
@@ -50,7 +50,7 @@ export const emitPGNData = (
   };
 
   // Use volatile emit for high-frequency updates
-  console.log('Emitting PGN data:', pgnUpdate);
+  // console.log('Emitting PGN data:', pgnUpdate);
   socket.volatile.emit('update_pgn_2000', [pgnUpdate]);
 };
 

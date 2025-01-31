@@ -22,11 +22,11 @@ function App() {
   const [pgnState, setPGNState] = useState<Record<string, Record<string, number>>>({});
   const pgnStateRef = useRef(pgnState);
   const [pgnConfig, setPgnConfig] = useState<Record<string, any>>({});
-  const [boatPosition, setBoatPosition] = useState<BoatState>({ 
+  const [boatState, setBoatState] = useState<BoatState>({ 
     lat: 44.6476, 
     lon: -63.5728, 
     heading: 0,
-    speed: 10  // Added speed in knots
+    speed_mps: 10
   });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
   const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
@@ -58,6 +58,10 @@ function App() {
   }, [pgnState]);
 
   useEffect(() => {
+    console.log('Boat state:', boatState);
+  }, [boatState]);
+
+  useEffect(() => {
     pgnStateRef.current = pgnState;
   }, [pgnState]);
 
@@ -73,6 +77,19 @@ function App() {
   };
 
   const handlePGNFieldsUpdate = (system: string, fields: Record<string, number>) => {
+    // If the PGN is 128259, update the boat state with either water or ground referenced speed
+    console.log('PGN fields update:', system, fields);
+    if (system === '128259') {
+      const speed = fields['Speed Water Referenced'] ?? fields['Speed Ground Referenced'];
+      if (typeof speed !== 'undefined') {
+        console.log('Speed data received:', speed);
+        setBoatState(prevState => ({
+          ...prevState,
+          speed_mps: speed
+        }));
+      }
+    }
+
     setPGNState(prevState => ({
       ...prevState,
       [system]: {
@@ -113,7 +130,7 @@ function App() {
       <div className="main-container">
         <div className="map-container">
           <Map 
-            boatPosition={boatPosition} 
+            boatState={boatState} 
             waypoints={waypoints}
             onStart={handleStart}
             onStop={handleStop}
@@ -132,10 +149,10 @@ function App() {
       </div>
       <Simulation 
         isSimulating={isSimulating} 
-        onPositionUpdate={setBoatPosition}
-        initialPosition={boatPosition}
         onPGNFieldsUpdate={handlePGNFieldsUpdate}
         waypoints={waypoints}
+        boatState={boatState}
+        setBoatState={setBoatState}
       />
     </div>
   );

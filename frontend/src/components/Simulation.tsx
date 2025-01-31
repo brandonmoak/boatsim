@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import LatLon from 'geodesy/latlon-spherical.js';
 import { BoatState, SimulationProps } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
@@ -6,17 +6,17 @@ import {
   createGNSSPositionData, 
   createRapidPositionData, 
   createCOGSOGData, 
-  createSystemTimeData 
+  createSystemTimeData,
+  createSpeedData
 } from '../utils/pgn_factory';
 
 function Simulation({ 
   isSimulating, 
-  onPositionUpdate, 
-  initialPosition,
   onPGNFieldsUpdate,
-  waypoints
+  waypoints,
+  boatState,
+  setBoatState
 }: SimulationProps) {
-  const [boatPosition, setBoatPosition] = useState<BoatState>(initialPosition);
   const [pgnConfig, setPGNConfig] = useState<any>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState<number>(0);
@@ -29,7 +29,19 @@ function Simulation({
     });
   }, []);
 
-  const updatePosition = () => {
+  const calculateBearing = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const p1 = new LatLon(lat1, lon1);
+    const p2 = new LatLon(lat2, lon2);
+    return p1.initialBearingTo(p2);
+  }, []);
+
+  const calculateDistance = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const p1 = new LatLon(lat1, lon1);
+    const p2 = new LatLon(lat2, lon2);
+    return p1.distanceTo(p2) / 1000; // Convert meters to kilometers
+  }, []);
+
+  const updatePosition = useCallback(() => {
     const currentTime = new Date();
     const deltaTime = (currentTime.getTime() - lastUpdate.getTime()) / 1000;
     
@@ -41,8 +53,8 @@ function Simulation({
     }
 
     // Validate current position
-    if (isNaN(boatPosition.lat) || isNaN(boatPosition.lon)) {
-      console.error('Invalid boat position:', boatPosition);
+    if (isNaN(boatState.lat) || isNaN(boatState.lon)) {
+      console.error('Invalid boat position:', boatState);
       return;
     }
 
@@ -56,12 +68,12 @@ function Simulation({
       return;
     }
 
-    const bearing = calculateBearing(boatPosition.lat, boatPosition.lon, targetLat, targetLon);
-    const distance = calculateDistance(boatPosition.lat, boatPosition.lon, targetLat, targetLon);
+    const bearing = calculateBearing(boatState.lat, boatState.lon, targetLat, targetLon);
+    const distance = calculateDistance(boatState.lat, boatState.lon, targetLat, targetLon);
 
     // Log navigation details
     console.log('Navigation update:', {
-      currentPosition: { lat: boatPosition.lat, lon: boatPosition.lon },
+      currentPosition: { lat: boatState.lat, lon: boatState.lon },
       targetPosition: { lat: targetLat, lon: targetLon },
       bearing,
       distance,
@@ -75,24 +87,24 @@ function Simulation({
       return;
     }
 
-    // Speed in knots (hardcoded for now)
-    const speed = 100.0; // Reduced from 100 to make movement more manageable
+    // Speed in m/s
+    const speed = boatState.speed_mps;
 
-    // Convert knots to kilometers per second
-    const speedKmPerSec = (speed * 1.852) / 3600; // Convert knots to km/s
+    // Convert m/s to km/s
+    const speedKmPerSec = speed / 1000;
     
-    // Calculate position change
+    // Calculate position change in kilometers
     const distanceToMove = speedKmPerSec * deltaTime;
     
     // Use great circle calculation for new position
-    const currentPoint = new LatLon(boatPosition.lat, boatPosition.lon);
+    const currentPoint = new LatLon(boatState.lat, boatState.lon);
     const newPoint = currentPoint.destinationPoint(distanceToMove * 1000, bearing); // Convert km to meters
 
-    const newPosition = {
+    const newPosition: BoatState = {
       lat: newPoint.lat,
       lon: newPoint.lon,
       heading: bearing,
-      speed: speed
+      speed_mps: speed
     };
 
     // Validate new position before updating
@@ -101,9 +113,8 @@ function Simulation({
       return;
     }
 
-    setBoatPosition(newPosition);
+    setBoatState(newPosition);
     setLastUpdate(currentTime);
-    onPositionUpdate(newPosition);
 
     // Update PGN states
     if (pgnConfig) {
@@ -125,20 +136,22 @@ function Simulation({
       // System Time (126992)
       const pgn126992 = createSystemTimeData(currentTime);
       onPGNFieldsUpdate('126992', pgn126992.fields);
+
+      // Speed Data (128259)
+      const pgn128259 = createSpeedData(newPosition, currentTime);
+      onPGNFieldsUpdate('128259', pgn128259.fields);
     }
-  };
-
-  const calculateBearing = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const p1 = new LatLon(lat1, lon1);
-    const p2 = new LatLon(lat2, lon2);
-    return p1.initialBearingTo(p2);
-  };
-
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const p1 = new LatLon(lat1, lon1);
-    const p2 = new LatLon(lat2, lon2);
-    return p1.distanceTo(p2) / 1000; // Convert meters to kilometers
-  };
+  }, [
+    lastUpdate,
+    waypoints,
+    currentWaypointIndex,
+    boatState,
+    setBoatState,
+    pgnConfig,
+    onPGNFieldsUpdate,
+    calculateBearing,
+    calculateDistance
+  ]);
 
   useEffect(() => {
     let simulationInterval: NodeJS.Timeout;
