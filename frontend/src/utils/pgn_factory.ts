@@ -54,7 +54,7 @@ export function createCOGSOGData(position: BoatState, timestamp: Date = new Date
   
   // Calculate SOG from the simulation speed (which is in knots)
   // Convert 100 knots to meters per second (1 knot = 0.514444 m/s)
-  const sogMetersPerSecond = 100 * 0.514444;
+  const sogMetersPerSecond = position.speed_mps;
 
   return {
     pgn: 129026,
