@@ -1,0 +1,20 @@
+{
+  "127488": {
+    "Speed": 500,
+    "Tilt/Trim": 15,
+    "Boost Pressure": 25,
+    "Instance": 1
+  },
+  "127508": {
+    "Instance": 1,
+    "Voltage": 48,
+    "Current": 10,
+    "Temperature": 293.15
+  },
+  "128259": {
+    "Speed Water Referenced": 10,
+    "Speed Water Referenced Type": 2,
+    "Speed Ground Referenced": 10,
+    "Speed Direction": 3
+  }
+}

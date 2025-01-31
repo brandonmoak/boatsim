@@ -1,13 +1,17 @@
 import { BoatState } from '../types';
 
 function getDaysSinceEpoch(timestamp: Date): number {
-  return Math.floor((timestamp.getTime() - new Date('1980-01-01').getTime()) / (1000 * 60 * 60 * 24));
+  return Math.floor((timestamp.getTime() - new Date('1970-01-01').getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function getSecondsSinceMidnight(timestamp: Date): number {
   return timestamp.getUTCHours() * 3600 + 
          timestamp.getUTCMinutes() * 60 + 
          timestamp.getUTCSeconds();
+}
+
+function getMillisecondsSinceMidnight(timestamp: Date): number {
+  return getSecondsSinceMidnight(timestamp) * 1000;
 }
 
 export function createGNSSPositionData(position: BoatState, timestamp: Date = new Date()) {
@@ -17,9 +21,7 @@ export function createGNSSPositionData(position: BoatState, timestamp: Date = ne
     fields: {
       // SID: 0,  // Sequence ID
       Date: getDaysSinceEpoch(timestamp),
-      Time: timestamp.getUTCHours() * 10000 + 
-            timestamp.getUTCMinutes() * 100 + 
-            timestamp.getUTCSeconds(),
+      Time: getSecondsSinceMidnight(timestamp),
       Latitude: position.lat,
       Longitude: position.lon,
       // Altitude: 0.0, // Assuming sea level
@@ -54,7 +56,7 @@ export function createCOGSOGData(position: BoatState, timestamp: Date = new Date
   
   // Calculate SOG from the simulation speed (which is in knots)
   // Convert 100 knots to meters per second (1 knot = 0.514444 m/s)
-  const sogMetersPerSecond = 100 * 0.514444;
+  const sogMetersPerSecond = position.speed_mps;
 
   return {
     pgn: 129026,
@@ -76,7 +78,7 @@ export function createSystemTimeData(timestamp: Date = new Date()) {
       // SID: 0,  // Sequence ID
       // Source: 0,  // GPS
       Date: getDaysSinceEpoch(timestamp),
-      Time: getSecondsSinceMidnight(timestamp)
+      Time: getMillisecondsSinceMidnight(timestamp)
     }
   };
 }

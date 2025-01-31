@@ -212,54 +212,44 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.pgn-database-header {
   padding: 20px;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-.pgn-database-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
+.pgn-database-title {
+  flex-shrink: 0;
+}
+
+.pgn-database-tabs {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .pgn-database-header-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 1rem;
+  margin-left: auto;
 }
 
 .close-button {
   background: none;
   border: none;
-  font-size: 24px;
+  color: #666;
   cursor: pointer;
-  padding: 0 8px;
+  font-size: 20px;
+  padding: 4px 8px;
+  line-height: 1;
 }
 
-.pgn-database-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
+.close-button:hover {
+  color: #000;
 }
 
-.pgn-database-item {
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.pgn-database-item-header {
-  padding: 10px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+.pgn-header-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex: 1;
 }
 
 .pgn-database-fields {
@@ -285,22 +275,27 @@
 /* Define specific column widths */
 .pgn-database-fields th:nth-child(1),
 .pgn-database-fields td:nth-child(1) {
-  width: 20%;  /* Field name column */
+  width: 15%;  /* Field name column */
 }
 
 .pgn-database-fields th:nth-child(2),
 .pgn-database-fields td:nth-child(2) {
-  width: 50%;  /* Description column */
+  width: 40%;  /* Description column */
 }
 
 .pgn-database-fields th:nth-child(3),
 .pgn-database-fields td:nth-child(3) {
-  width: 25%;  /* Type column */
+  width: 20%;  /* Type column */
 }
 
 .pgn-database-fields th:nth-child(4),
 .pgn-database-fields td:nth-child(4) {
-  width: 5%;  /* Units column */
+  width: 10%;  /* Units column */
+}
+
+.pgn-database-fields th:nth-child(5),
+.pgn-database-fields td:nth-child(5) {
+  width: 15%;  /* Value column */
 }
 
 /* Add hover effect to show full content */
@@ -333,10 +328,17 @@
 
 .pgn-search-input {
   width: 250px;
-  padding: 8px;
+  padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pgn-search-input:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
 }
 
 /* Enum Preview Styles */
@@ -396,13 +398,4 @@
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.9em;
-}
-
-.pgn-database-item .pgn-description {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 0;  /* Remove margin for database view */
-  font-weight: normal;  /* Keep database description weight normal */
-  gap: 8px;
 }
