@@ -21,7 +21,7 @@ export function createGNSSPositionData(position: BoatState, timestamp: Date = ne
     fields: {
       // SID: 0,  // Sequence ID
       Date: getDaysSinceEpoch(timestamp),
-      Time: getMillisecondsSinceMidnight(timestamp),
+      Time: getSecondsSinceMidnight(timestamp),
       Latitude: position.lat,
       Longitude: position.lon,
       // Altitude: 0.0, // Assuming sea level
