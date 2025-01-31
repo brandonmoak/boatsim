@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import LatLon from 'geodesy/latlon-spherical.js';
 import { BoatState, SimulationProps } from '../types';
-import { loadPGNConfig } from '../utils/pgn_loader';
+import { loadPGNConfig } from '../utils/pgn_definition_loader';
 import { 
   createGNSSPositionData, 
   createRapidPositionData, 

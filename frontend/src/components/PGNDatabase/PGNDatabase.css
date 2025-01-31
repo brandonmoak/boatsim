@@ -276,3 +276,22 @@
 .collapse-arrow.expanded {
   transform: rotate(0deg);
 }
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 8px 16px;
+  margin: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.save-defaults-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.pgn-select-container.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

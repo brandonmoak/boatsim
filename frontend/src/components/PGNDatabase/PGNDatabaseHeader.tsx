@@ -9,7 +9,9 @@ const PGNDatabaseHeader: React.FC<HeaderProps> = ({
   setSearchTerm,
   pgnOptions,
   handleAddDefault,
-  onClose
+  onClose,
+  onSaveDefaults,
+  isSaving
 }) => {
   return (
     <div className="pgn-database-header">
@@ -49,13 +51,18 @@ const PGNDatabaseHeader: React.FC<HeaderProps> = ({
               onChange={handleAddDefault}
               placeholder="Add Default PGN..."
               isClearable={true}
+              isDisabled={isSaving}
             />
-            <button className="save-defaults-button">
-              Save Default Values
+            <button 
+              className="save-defaults-button"
+              onClick={onSaveDefaults}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save Default Values'}
             </button>
           </>
         )}
-        <button onClick={onClose} className="close-button">×</button>
+        <button onClick={onClose} className="close-button" disabled={isSaving}>×</button>
       </div>
     </div>
   );

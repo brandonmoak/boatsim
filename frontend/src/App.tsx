@@ -9,11 +9,11 @@ import PGNDatabase from './components/PGNDatabase';
 import { 
   BoatState, 
   Waypoint,
-  PGNDefinition
 } from './types';
 // Utils
 import { initSocket } from './utils/socket';
-import { loadPGNConfig, getInitialPGNState, getDefaultPGNs } from './utils/pgn_loader';
+import { loadPGNConfig } from './utils/pgn_definition_loader';
+import { getInitialPGNState, getDefaultPGNs } from './utils/pgn_defaults_loader';
 import { startEmitting, stopEmitting} from './utils/pgn_emitter';
 import { loadWaypoints } from './utils/waypoint_loader';
 
@@ -128,7 +128,17 @@ function App() {
     }
   };
 
-  // Function to update defaults that we can pass down
+  // Add this function to get current PGN state values
+  const getCurrentPGNValues = (pgn: string): Record<string, number> => {
+    // First try to get values from current PGN state
+    const currentValues = pgnState[pgn];
+    if (currentValues && Object.keys(currentValues).length > 0) {
+      return currentValues;
+    }
+    return {};
+  };
+
+  // Update the updateDefaultPGNs function
   const updateDefaultPGNs = (newDefaults: Record<string, Record<string, number>>) => {
     setDefaultPGNs(newDefaults);
     // TODO: When backend is ready, make API call here
@@ -177,6 +187,7 @@ function App() {
             onUpdateDefaults={updateDefaultPGNs}
             selectedPGNs={selectedPGNs}
             onAddToSimulation={handleAddToSimulation}
+            getCurrentPGNValues={getCurrentPGNValues}
           />
         </div>
       </div>

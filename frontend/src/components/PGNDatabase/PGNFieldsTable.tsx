@@ -66,7 +66,7 @@ const PGNFieldsTable: React.FC<PGNFieldsTableProps> = ({
                   {isDefault && (
                     <input
                       type="number"
-                      value={editedValues[pgn]?.[field.Name] || ''}
+                      value={editedValues[pgn]?.[field.Name] ?? ''}
                       onChange={(e) => onValueChange(pgn, field.Name, e.target.value)}
                       min={getFieldMin(field)}
                       max={getFieldMax(field)}

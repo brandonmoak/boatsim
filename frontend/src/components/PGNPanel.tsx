@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
-import { loadPGNConfig, getDefaultPGNArray } from '../utils/pgn_loader';
+import { loadPGNConfig } from '../utils/pgn_definition_loader';
+import { getDefaultPGNArray } from '../utils/pgn_defaults_loader';
 import { 
   PGNPanelProps 
 } from '../types';

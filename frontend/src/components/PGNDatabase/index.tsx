@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PGNDatabaseProps, TabType } from './types';
 import PGNDatabaseHeader from './PGNDatabaseHeader';
 import PGNItem from './PGNItem';
@@ -11,10 +11,13 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
   defaultPGNs,
   onUpdateDefaults,
   selectedPGNs,
-  onAddToSimulation
+  onAddToSimulation,
+  getCurrentPGNValues
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const pgnOptions = useMemo(() => 
     Object.entries(pgnDefinitions).map(([key, def]) => ({
@@ -28,7 +31,7 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
     if (option) {
       const newValues = {
         ...defaultPGNs,
-        [option.value]: {}
+        [option.value]: getCurrentPGNValues(option.value)
       };
       onUpdateDefaults(newValues);
     }
@@ -54,9 +57,42 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
   const handleAddToDefaults = (pgn: string) => {
     const newValues = {
       ...defaultPGNs,
-      [pgn]: {}
+      [pgn]: getCurrentPGNValues(pgn)
     };
     onUpdateDefaults(newValues);
+  };
+
+  const handleSaveDefaults = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const backendPort = process.env.REACT_APP_BACKEND_PORT;
+      const response = await fetch(`http://localhost:${backendPort}/api/defaults`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(defaultPGNs)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save defaults: ${response.statusText}`);
+      }
+
+      // Optional: Update local state with server response if needed
+      const savedDefaults = await response.json();
+      onUpdateDefaults(savedDefaults);
+
+      // Show success message
+      alert('Default values saved successfully!');
+    } catch (error) {
+      console.error('Error saving defaults:', error);
+      setSaveError('Failed to save defaults. Please try again.');
+      alert('Failed to save defaults');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const filteredPGNs = useMemo(() => {
@@ -85,7 +121,14 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
           pgnOptions={pgnOptions}
           handleAddDefault={handleAddDefault}
           onClose={onClose}
+          onSaveDefaults={handleSaveDefaults}
+          isSaving={isSaving}
         />
+        {saveError && (
+          <div className="error-message">
+            {saveError}
+          </div>
+        )}
         <div className="pgn-database-body">
           {filteredPGNs.map(pgn => (
             <PGNItem

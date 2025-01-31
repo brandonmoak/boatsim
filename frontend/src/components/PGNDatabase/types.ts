@@ -8,6 +8,7 @@ export interface PGNDatabaseProps {
   onUpdateDefaults: (newDefaults: Record<string, Record<string, number>>) => void;
   selectedPGNs: string[];
   onAddToSimulation: (pgn: string) => void;
+  getCurrentPGNValues: (pgn: string) => Record<string, number>;
 }
 
 export type TabType = 'all' | 'defaults';
@@ -20,6 +21,8 @@ export interface HeaderProps {
   pgnOptions: Array<{ value: string; label: string }>;
   handleAddDefault: (option: { value: string; label: string } | null) => void;
   onClose: () => void;
+  onSaveDefaults: () => void;
+  isSaving: boolean;
 }
 
 export interface PGNItemProps {

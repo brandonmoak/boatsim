@@ -1,9 +1,8 @@
 import pkg from '@canboat/canboatjs';
-const { FromPgn, pgnToActisenseSerialFormat, Actisense, serial} = pkg;
-import { SerialPort } from 'serialport'
+const { pgnToActisenseSerialFormat, serial} = pkg;
 import { EventEmitter } from 'events'
 import dgram from 'dgram'
-import { PgnStatsManager } from './PgnStatsManager.js';
+import { PgnStatsManager } from './pgn_state_manager.js';
 
 class MessageForwarder extends EventEmitter {
     constructor(io, devicePath) {
