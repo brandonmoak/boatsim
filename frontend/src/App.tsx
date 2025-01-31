@@ -4,6 +4,7 @@ import './App.css';
 import Map from './components/Map';
 import PGNPanel from './components/PGNPanel';
 import Simulation from './components/Simulation';
+import PGNDatabaseViewer from './components/PGNDatabaseViewer';
 // Types
 import { 
   BoatState, 
@@ -22,15 +23,11 @@ function App() {
   const [pgnState, setPGNState] = useState<Record<string, Record<string, number>>>({});
   const pgnStateRef = useRef(pgnState);
   const [pgnConfig, setPgnConfig] = useState<Record<string, any>>({});
-  const [boatState, setBoatState] = useState<BoatState>({ 
-    lat: 44.6476, 
-    lon: -63.5728, 
-    heading: 0,
-    speed_mps: 10
-  });
+  const [boatState, setBoatState] = useState<BoatState>({ lat: 44.6476, lon: -63.5728, heading: 0, speed_mps: 10 });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
   const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
 
   useEffect(() => {
     initSocket();
@@ -138,12 +135,23 @@ function App() {
           />
         </div>
         <div className="pgn-container">
+          <button 
+            className="database-button"
+            onClick={() => setIsDatabaseViewerOpen(true)}
+          >
+            View PGN Database
+          </button>
           <PGNPanel 
             pgnState={pgnState}
             pgnRates={pgnRates}
             onPGNFieldsUpdate={handlePGNFieldsUpdate}
             onPGNRateUpdate={handlePGNRateUpdate}
             onSelectedPGNsChange={handleSelectedPGNsChange}
+          />
+          <PGNDatabaseViewer
+            isOpen={isDatabaseViewerOpen}
+            onClose={() => setIsDatabaseViewerOpen(false)}
+            pgnDefinitions={pgnConfig}
           />
         </div>
       </div>
