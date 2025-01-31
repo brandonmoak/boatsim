@@ -6,6 +6,14 @@ interface NavigationDisplayProps {
 }
 
 const NavigationDisplay: React.FC<NavigationDisplayProps> = ({ boatState }) => {
+  const formatLatLon = (decimal: number, isLat: boolean) => {
+    const direction = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
+    const absolute = Math.abs(decimal);
+    const degrees = Math.floor(absolute);
+    const minutes = (absolute - degrees) * 60;
+    return `${degrees}°${minutes.toFixed(2)}'${direction}`;
+  };
+
   return (
     <div className="navigation-display">
       <div className="nav-item">
@@ -18,11 +26,11 @@ const NavigationDisplay: React.FC<NavigationDisplayProps> = ({ boatState }) => {
       </div>
       <div className="nav-item">
         <label>Lat</label>
-        <span>{boatState.lat.toFixed(4)}°N</span>
+        <span>{formatLatLon(boatState.lat, true)}</span>
       </div>
       <div className="nav-item">
         <label>Lon</label>
-        <span>{boatState.lon.toFixed(4)}°W</span>
+        <span>{formatLatLon(boatState.lon, false)}</span>
       </div>
     </div>
   );
