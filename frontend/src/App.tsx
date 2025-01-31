@@ -164,13 +164,6 @@ function App() {
             isSimulating={isSimulating}
           />
         </div>
-        <div className="pgn-container">
-          <button 
-            className="database-button"
-            onClick={() => setIsDatabaseViewerOpen(true)}
-          >
-            View PGN Database
-          </button>
           <PGNPanel 
             pgnState={pgnState}
             pgnRates={pgnRates}
@@ -178,19 +171,11 @@ function App() {
             onPGNFieldsUpdate={handlePGNFieldsUpdate}
             onPGNRateUpdate={handlePGNRateUpdate}
             onSelectedPGNsChange={handleSelectedPGNsChange}
-          />
-          <PGNDatabase
-            isOpen={isDatabaseViewerOpen}
-            onClose={() => setIsDatabaseViewerOpen(false)}
-            pgnDefinitions={pgnConfig}
             defaultPGNs={defaultPGNs}
-            onUpdateDefaults={updateDefaultPGNs}
-            selectedPGNs={selectedPGNs}
-            onAddToSimulation={handleAddToSimulation}
+            updateDefaultPGNs={updateDefaultPGNs}
             getCurrentPGNValues={getCurrentPGNValues}
           />
         </div>
-      </div>
       <Simulation 
         isSimulating={isSimulating} 
         onPGNFieldsUpdate={handlePGNFieldsUpdate}

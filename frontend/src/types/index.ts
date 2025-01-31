@@ -87,4 +87,7 @@ export interface PGNPanelProps {
   onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
   onPGNRateUpdate: (pgnKey: string, rate: number) => void;
   onSelectedPGNsChange: (pgns: string[]) => void;
-} 
+  defaultPGNs: Record<string, Record<string, number>>;
+  updateDefaultPGNs: (newDefaults: Record<string, Record<string, number>>) => void;
+  getCurrentPGNValues: (pgn: string) => Record<string, number>;
+}

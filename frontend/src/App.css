@@ -1,6 +1,7 @@
 /* Main layout */
 .main-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100%;
   overflow: hidden;
@@ -13,19 +14,63 @@
 
 /* PGN Panel */
 .pgn-container {
-  width: 320px;
-  height: 100vh;
+  height: 300px;  /* Initial height */
+  min-height: 100px;
+  max-height: 80vh;
+  width: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #ddd;
+  border-top: 1px solid #ddd;
+  background: white;
+  overflow: hidden;
+  flex-shrink: 0;  /* Prevent container from shrinking */
+}
+
+/* Resize Handle */
+.pgn-resize-handle {
+  width: 100%;
+  height: 6px;
+  background: #f0f0f0;
+  cursor: ns-resize;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.pgn-resize-handle:hover {
+  background: #e0e0e0;
+}
+
+.pgn-resize-handle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 2px;
+  background: #999;
+  border-radius: 1px;
+}
+
+/* Ensure panel content stays below resize handle */
+.pgn-panel {
+  margin-top: 6px;
+  height: calc(100% - 6px);  /* Take remaining space */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;  /* Hide overflow */
+  flex: 1;  /* Take up remaining space */
 }
 
 .pgn-panel {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  overflow: hidden;
+  height: 100%; /* Ensure full height */
   width: 100%;
   background: white;
   padding: 5px;
@@ -34,58 +79,64 @@
   overflow-y: auto;
   border: 1px solid #ddd;
   margin: 0;
-  height: calc(100% - 90px);
 }
 
 .pgn-panel-header {
-  flex: 0 0 auto;
-  padding: 15px 15px 15px 15px;
+  flex-shrink: 0;  /* Prevent header from shrinking */
+  padding: 12px;
   border-bottom: 1px solid #ddd;
   background: white;
 }
 
+.pgn-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
 .pgn-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-  height: 0;
+  flex: 1;  /* Take remaining space */
+  overflow-y: auto;  /* Enable scrolling */
+  padding: 12px;
+  min-height: 0;  /* Allow container to shrink */
 }
 
 /* PGN Items */
 .pgn-item-container {
+  flex-shrink: 0;  /* Prevent items from shrinking */
+  width: 100%;
   position: relative;
-  margin-bottom: 12px;
 }
 
 .pgn-item {
   background: #f8f9fa;
   border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 12px 20px 12px 12px;
+  padding: 8px 12px;
   width: 100%;
-  box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: center;
 }
 
 .pgn-description {
+  flex: 0 0 150px;
   display: flex;
-  flex-direction: column;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: 6px;
   font-weight: 500;
-  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pgn-number {
-  align-self: flex-start;
-  background: #0066cc;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  font-size: 0.85em;
 }
 
 .pgn-rate {
@@ -95,13 +146,12 @@
 
 /* PGN Values */
 .pgn-value {
-  display: grid;
-  grid-template-columns: minmax(80px, 1.5fr) minmax(60px, 80px) minmax(30px, 40px);
-  gap: 8px;
+  flex: 0 1 auto;
+  display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 6px;
+  min-width: 140px;
+  max-width: 200px;
 }
 
 .pgn-value:last-child {
@@ -109,29 +159,29 @@
 }
 
 .pgn-value label {
-  color: #666;
-  font-size: 0.9em;
+  flex: 0 0 60px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pgn-value input,
 .pgn-value select {
-  width: 100%;
-  padding: 4px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: right;
-  box-sizing: border-box;
-  min-width: 0;
+  flex: 1;
+  min-width: 50px;
+  max-width: 100px;
+  padding: 2px 6px;
+  font-size: 0.9em;
 }
 
 .pgn-value span {
-  color: #666;
+  flex: 0 0 30px;
   font-size: 0.8em;
 }
 
 /* React-Select Styles */
 .pgn-select-container {
-  margin-bottom: 0;
   width: 100%;
 }
 
@@ -311,7 +361,6 @@
 }
 
 .database-button {
-  margin: 10px;
   padding: 8px 16px;
   background: #0066cc;
   color: white;
@@ -320,10 +369,17 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  white-space: nowrap;
+  margin: 0;
 }
 
 .database-button:hover {
   background: #0052a3;
+}
+
+.pgn-selector {
+  flex: 1;
+  min-width: 200px;
 }
 
 .pgn-search-input {
@@ -369,15 +425,18 @@
   width: 100%;
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 
 .pgn-panel .pgn-description {
+  flex: 0 0 200px;
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   font-weight: 500;
   gap: 8px;
 }
