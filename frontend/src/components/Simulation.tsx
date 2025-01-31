@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { BoatPosition, SimulationProps, Waypoint, PGNUpdate } from '../types';
+import { useEffect, useState } from 'react';
+import LatLon from 'geodesy/latlon-spherical.js';
+import { BoatPosition, SimulationProps } from '../types';
 import { loadPGNConfig } from '../utils/pgn_loader';
-import { loadWaypoints} from '../utils/waypoint_loader';
 import { 
   createGNSSPositionData, 
   createRapidPositionData, 
@@ -13,23 +13,19 @@ function Simulation({
   isSimulating, 
   onPositionUpdate, 
   initialPosition,
-  pgnState,
   onPGNFieldsUpdate,
-  onPGNRateUpdate
+  waypoints
 }: SimulationProps) {
   const [boatPosition, setBoatPosition] = useState<BoatPosition>(initialPosition);
   const [pgnConfig, setPGNConfig] = useState<any>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [currentWaypointIndex, setCurrentWaypointIndex] = useState<number>(0);
-  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
 
   useEffect(() => {
     Promise.all([
       loadPGNConfig(),
-      loadWaypoints()
-    ]).then(([pgnConfig, waypointConfig]) => {
+    ]).then(([pgnConfig]) => {
       setPGNConfig(pgnConfig);
-      setWaypoints(waypointConfig);
     });
   }, []);
 
@@ -44,42 +40,69 @@ function Simulation({
       return;
     }
 
+    // Validate current position
+    if (isNaN(boatPosition.lat) || isNaN(boatPosition.lon)) {
+      console.error('Invalid boat position:', boatPosition);
+      return;
+    }
+
     // Calculate bearing to waypoint
     const targetLat = currentWaypoint.lat;
     const targetLon = currentWaypoint.lon;
-    const bearing = calculateBearing(boatPosition.lat, boatPosition.lon, targetLat, targetLon);
     
-    // Calculate distance to waypoint
+    // Validate target position
+    if (isNaN(targetLat) || isNaN(targetLon)) {
+      console.error('Invalid waypoint position:', currentWaypoint);
+      return;
+    }
+
+    const bearing = calculateBearing(boatPosition.lat, boatPosition.lon, targetLat, targetLon);
     const distance = calculateDistance(boatPosition.lat, boatPosition.lon, targetLat, targetLon);
-    // console.log(`Navigating to waypoint ${currentWaypointIndex}:`, {
-    //   distance: distance.toFixed(3) + ' km',
-    //   bearing: bearing.toFixed(1) + '°',
-    //   target: { lat: targetLat, lon: targetLon },
-    //   current: { lat: boatPosition.lat, lon: boatPosition.lon }
-    // });
+
+    // Log navigation details
+    console.log('Navigation update:', {
+      currentPosition: { lat: boatPosition.lat, lon: boatPosition.lon },
+      targetPosition: { lat: targetLat, lon: targetLon },
+      bearing,
+      distance,
+      deltaTime
+    });
 
     // Check if we've reached the waypoint (within 0.1 km)
     if (distance < 0.1) {
       console.log(`Reached waypoint ${currentWaypointIndex}`);
       setCurrentWaypointIndex(currentWaypointIndex + 1);
+      return;
     }
 
     // Speed in knots (hardcoded for now)
-    const speed = 100.0;
+    const speed = 100.0; // Reduced from 100 to make movement more manageable
+
+    // Convert knots to kilometers per second
+    const speedKmPerSec = (speed * 1.852) / 3600; // Convert knots to km/s
     
-    // Convert knots to degrees per second
-    const speedDegPerSec = (speed * 1.852) / (111.0 * 3600.0);
+    // Calculate position change
+    const distanceToMove = speedKmPerSec * deltaTime;
     
-    // Use bearing to waypoint as heading
-    const headingRad = (bearing * Math.PI) / 180;
-    const deltaLat = speedDegPerSec * Math.cos(headingRad) * deltaTime;
-    const deltaLon = speedDegPerSec * Math.sin(headingRad) * deltaTime;
-    
+    // Use great circle calculation for new position
+    const currentPoint = new LatLon(boatPosition.lat, boatPosition.lon);
+    const newPoint = currentPoint.destinationPoint(distanceToMove * 1000, bearing); // Convert km to meters
+
     const newPosition = {
-      lat: boatPosition.lat + deltaLat,
-      lon: boatPosition.lon + deltaLon,
+      lat: newPoint.lat,
+      lon: newPoint.lon,
       heading: bearing
     };
+
+    // Validate new position before updating
+    if (isNaN(newPosition.lat) || isNaN(newPosition.lon)) {
+      console.error('Invalid new position calculated:', newPosition);
+      return;
+    }
+
+    setBoatPosition(newPosition);
+    setLastUpdate(currentTime);
+    onPositionUpdate(newPosition);
 
     // Update PGN states
     if (pgnConfig) {
@@ -102,40 +125,18 @@ function Simulation({
       const pgn126992 = createSystemTimeData(currentTime);
       onPGNFieldsUpdate('126992', pgn126992.fields);
     }
-
-    setBoatPosition(newPosition);
-    setLastUpdate(currentTime);
-    onPositionUpdate(newPosition);
   };
 
-  // Helper function to calculate bearing between two points
   const calculateBearing = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const y = Math.sin(Δλ) * Math.cos(φ2);
-    const x = Math.cos(φ1) * Math.sin(φ2) -
-             Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
-
-    let bearing = Math.atan2(y, x) * 180 / Math.PI;
-    return (bearing + 360) % 360; // Normalize to 0-360
+    const p1 = new LatLon(lat1, lon1);
+    const p2 = new LatLon(lat2, lon2);
+    return p1.initialBearingTo(p2);
   };
 
-  // Helper function to calculate distance between two points (in km)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Earth's radius in km
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-             Math.cos(φ1) * Math.cos(φ2) *
-             Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c;
+    const p1 = new LatLon(lat1, lon1);
+    const p2 = new LatLon(lat2, lon2);
+    return p1.distanceTo(p2) / 1000; // Convert meters to kilometers
   };
 
   useEffect(() => {
@@ -155,7 +156,7 @@ function Simulation({
         clearInterval(simulationInterval);
       }
     };
-  }, [isSimulating]);
+  }, [isSimulating, updatePosition]);
 
   return <div />;
 }

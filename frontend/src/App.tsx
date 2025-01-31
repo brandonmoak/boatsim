@@ -8,11 +8,13 @@ import Simulation from './components/Simulation';
 // Types
 import { 
   BoatPosition, 
+  Waypoint
 } from './types';
 // Utils
 import { initSocket } from './utils/socket';
 import { loadPGNConfig, getInitialPGNState } from './utils/pgn_loader';
 import { startEmitting, stopEmitting, stopEmittingPGN } from './utils/pgn_emitter';
+import { loadWaypoints } from './utils/waypoint_loader';
 
 
 function App() {
@@ -24,12 +26,17 @@ function App() {
   const [boatPosition, setBoatPosition] = useState<BoatPosition>({ lat: 44.6476, lon: -63.5728, heading: 0 });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
   const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
 
   useEffect(() => {
     initSocket();
-    loadPGNConfig().then((config) => {
+    Promise.all([
+      loadPGNConfig(),
+      loadWaypoints()
+    ]).then(([config, loadedWaypoints]) => {
       setPgnConfig(config);
       setPGNState(getInitialPGNState(config));
+      setWaypoints(loadedWaypoints);
       // Initialize rates using TransmissionInterval from config (converting ms to Hz)
       const initialRates = Object.keys(config).reduce((acc, pgn) => {
         const interval = config[pgn]?.TransmissionInterval;
@@ -101,7 +108,10 @@ function App() {
     <div className="App">
       <div className="main-container">
         <div className="map-container">
-          <Map boatPosition={boatPosition} />
+          <Map 
+            boatPosition={boatPosition} 
+            waypoints={waypoints}
+          />
           <Controls 
             onStart={handleStart} 
             onStop={handleStop} 
@@ -122,9 +132,8 @@ function App() {
         isSimulating={isSimulating} 
         onPositionUpdate={setBoatPosition}
         initialPosition={boatPosition}
-        pgnState={pgnState}
         onPGNFieldsUpdate={handlePGNFieldsUpdate}
-        onPGNRateUpdate={handlePGNRateUpdate}
+        waypoints={waypoints}
       />
     </div>
   );

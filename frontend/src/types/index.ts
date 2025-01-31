@@ -14,9 +14,8 @@ export interface SimulationProps {
   isSimulating: boolean;
   onPositionUpdate: (position: BoatPosition) => void;
   initialPosition: BoatPosition;
-  pgnState: Record<string, Record<string, number>>;
   onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
-  onPGNRateUpdate: (pgnKey: string, rate: number) => void;
+  waypoints: Waypoint[];
 }
 
 export interface ControlsProps {
