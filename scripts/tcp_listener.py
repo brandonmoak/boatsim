@@ -37,15 +37,6 @@ def connect_tcp(port, host='192.168.34.11', filter_pattern=None):
         sock.connect((host, port))
         print(f"Connected to {host}:{port}")
         
-        # Try to find working start command
-        working_cmd = try_start_commands(sock)
-        if working_cmd:
-            print(f"\nFound working command: {binascii.hexlify(working_cmd).decode()}")
-        else:
-            print("\nNo working command found")
-            sock.close()
-            return
-        
         while True:
             try:
                 data = sock.recv(1024)
@@ -60,7 +51,7 @@ def connect_tcp(port, host='192.168.34.11', filter_pattern=None):
                     if filter_pattern and not re.search(filter_pattern, decoded):
                         continue
                         
-                    print(f"Received text: {decoded}")
+                    print(f"{decoded}", flush=True)
                 except UnicodeDecodeError:
                     # If decode fails, show as hex
                     hex_data = binascii.hexlify(data).decode('ascii')
