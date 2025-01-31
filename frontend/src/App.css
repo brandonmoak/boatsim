@@ -63,31 +63,34 @@
   background: #f8f9fa;
   border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 6px 20px 6px 6px;
+  padding: 12px 20px 12px 12px;
   width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .pgn-description {
   display: flex;
-  align-items: center;
-  margin-bottom: 12px;
+  flex-direction: column;
+  margin-bottom: 8px;
   font-weight: 500;
+  gap: 4px;
 }
 
 .pgn-number {
+  align-self: flex-start;
   background: #0066cc;
   color: white;
   padding: 2px 6px;
   border-radius: 4px;
-  margin-right: 8px;
   font-size: 0.9em;
 }
 
 .pgn-rate {
   color: #666;
   font-size: 0.9em;
-  margin-left: 8px;
 }
 
 /* PGN Values */
@@ -266,6 +269,7 @@
 .pgn-database-fields table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .pgn-database-fields th,
@@ -273,6 +277,37 @@
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Define specific column widths */
+.pgn-database-fields th:nth-child(1),
+.pgn-database-fields td:nth-child(1) {
+  width: 20%;  /* Field name column */
+}
+
+.pgn-database-fields th:nth-child(2),
+.pgn-database-fields td:nth-child(2) {
+  width: 50%;  /* Description column */
+}
+
+.pgn-database-fields th:nth-child(3),
+.pgn-database-fields td:nth-child(3) {
+  width: 25%;  /* Type column */
+}
+
+.pgn-database-fields th:nth-child(4),
+.pgn-database-fields td:nth-child(4) {
+  width: 5%;  /* Units column */
+}
+
+/* Add hover effect to show full content */
+.pgn-database-fields td:hover {
+  white-space: normal;
+  word-wrap: break-word;
+  background-color: #f8f9fa;
 }
 
 .pgn-database-fields th {
@@ -302,4 +337,72 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+}
+
+/* Enum Preview Styles */
+.enum-preview {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+}
+
+.enum-preview:hover {
+  border-color: #0066cc;
+}
+
+.enum-preview option {
+  padding: 4px 8px;
+}
+
+/* PGN Items in main panel */
+.pgn-panel .pgn-item {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px 20px 12px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pgn-panel .pgn-description {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 500;
+  gap: 8px;
+}
+
+/* Database specific styles */
+.pgn-database-item .pgn-number {
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #0066cc;
+  color: white;
+}
+
+.pgn-panel .pgn-number {
+  align-self: flex-start;
+  background: #0066cc;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.pgn-database-item .pgn-description {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0;  /* Remove margin for database view */
+  font-weight: normal;  /* Keep database description weight normal */
+  gap: 8px;
 }

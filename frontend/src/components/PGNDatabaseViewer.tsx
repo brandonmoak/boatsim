@@ -30,6 +30,24 @@ const PGNDatabaseViewer: React.FC<PGNDatabaseProps> = ({ isOpen, onClose, pgnDef
     })
     .sort(([a], [b]) => parseInt(a) - parseInt(b));
 
+  const renderFieldType = (field: any) => {
+    if (field.EnumValues && Array.isArray(field.EnumValues)) {
+        return (
+            <div>
+                <div>{field.Type}</div>
+                <select className="enum-preview">
+                    {field.EnumValues.map((enumValue: { name: string, value: number }) => (
+                        <option key={enumValue.value} value={enumValue.value}>
+                            {enumValue.value}: {enumValue.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        );
+    }
+    return field.Type;
+  };
+
   return (
     <div className="pgn-database-overlay">
       <div className="pgn-database-content">
@@ -68,7 +86,7 @@ const PGNDatabaseViewer: React.FC<PGNDatabaseProps> = ({ isOpen, onClose, pgnDef
                       <tr key={index}>
                         <td>{field.Name}</td>
                         <td>{field.Description || '-'}</td>
-                        <td>{field.FieldType}</td>
+                        <td>{renderFieldType(field)}</td>
                         <td>{field.Unit || '-'}</td>
                       </tr>
                     ))}

@@ -78,9 +78,9 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
                                 value={currentValues[field.Name] || ''}
                                 onChange={(e) => onValueChange(field.Name, parseFloat(e.target.value))}
                             >
-                                {Object.entries(field.EnumValues).map(([value, label]) => (
-                                    <option key={value} value={value}>
-                                        {label}
+                                {field.EnumValues.map((enumValue) => (
+                                    <option key={enumValue.value} value={enumValue.value}>
+                                        {enumValue.name}
                                     </option>
                                 ))}
                             </select>

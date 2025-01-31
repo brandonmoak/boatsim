@@ -34,6 +34,11 @@ export interface PGNDefaultField {
     [key: string]: number;
 }
 
+interface EnumValue {
+    name: string;
+    value: number;
+}
+
 export interface PGNField {
     Order: number;
     Id: string;
@@ -42,16 +47,15 @@ export interface PGNField {
     BitLength: number;
     BitOffset: number;
     BitStart: number;
-    Resolution?: number;
-    Signed?: boolean;
-    Unit?: string;  // Note: it's "Unit" not "Units" in the JSON
-    RangeMin?: number;
-    RangeMax?: number;
     FieldType: string;
-    LookupEnumeration?: string;
-    EnumValues?: Record<string, string>;
-    PhysicalQuantity?: string;
+    Resolution: number;
+    Signed: boolean;
+    RangeMin: number;
+    RangeMax: number;
+    EnumValues?: EnumValue[];
+    Unit?: string;
 }
+
 
 export interface PGNDefinition {
     PGN: number;
