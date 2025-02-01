@@ -10,9 +10,6 @@ import NavigationDisplay from './NavigationDisplay';
 interface MapProps {
   boatState: BoatState;
   waypoints: Waypoint[];
-  onStart: () => void;
-  onStop: () => void;
-  isSimulating: boolean;
 }
 
 // Update the interface definition
@@ -34,16 +31,9 @@ declare module 'leaflet' {
   }
 }
 
-interface RotationControlType extends L.Control {
-  _updateInterval?: ReturnType<typeof setInterval>;
-}
-
 const Map: React.FC<MapProps> = ({ 
   boatState, 
   waypoints,
-  onStart,
-  onStop,
-  isSimulating
 }) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);

@@ -1,3 +1,7 @@
+export interface PGNState {
+  [key: string]: Record<string, number>;
+}
+
 export interface Waypoint {
     name: string;
     lat: number;
