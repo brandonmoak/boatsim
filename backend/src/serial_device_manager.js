@@ -103,7 +103,7 @@ export class ActisenseSerialDevice {
     }
 }
 
-import MOCK_SERIAL_DEVICES from './mock_serial_devices.json';
+import { MOCK_SERIAL_DEVICES } from '../test/mock.js';
 export function listSerialDevices() {
     return MOCK_SERIAL_DEVICES;
 }
