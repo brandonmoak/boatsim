@@ -8,9 +8,10 @@ interface PGNItemProps {
     rate?: number;
     onValueChange: (field: string, value: number) => void;
     onRateChange: (value: number) => void;
+    isSimulated?: boolean;
 }
 
-const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, onRateChange }) => {
+const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, onRateChange, isSimulated }) => {
     // Add state to track intermediate input values
     const [intermediateValues, setIntermediateValues] = React.useState<Record<string, string>>({});
 
@@ -83,10 +84,10 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
     };
 
     return (
-        <div className="pgn-item">
+        <div className={`pgn-item ${isSimulated ? 'simulated' : ''}`}>
             <div className="pgn-item-fixed">
                 <div className="pgn-fixed-content">
-                    <span className="pgn-number">PGN {config.PGN}</span>
+                    <span className={`pgn-number ${isSimulated ? 'simulated' : ''}`}>PGN {config.PGN}</span>
                     <div className="pgn-value">
                         <div className="pgn-value-input-group">
                             <input

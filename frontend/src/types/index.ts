@@ -79,11 +79,12 @@ export interface PGNUpdate {
   [key: string]: any;  // Allow additional fields for bulk updates
 }
 
-// Add PGNPanel props interface
+// Update PGNPanel props interface
 export interface PGNPanelProps {
   pgnState: Record<string, Record<string, number>>;
   pgnRates: Record<string, number>;
   selectedPGNs: string[];
+  simulatedPGNs: string[];
   onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
   onPGNRateUpdate: (pgnKey: string, rate: number) => void;
   onSelectedPGNsChange: (pgns: string[]) => void;

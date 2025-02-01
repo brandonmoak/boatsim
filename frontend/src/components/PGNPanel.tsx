@@ -29,7 +29,8 @@ const PGNPanel = React.memo(({
   onStart,
   onStop,
   isSimulating,
-  boatState
+  boatState,
+  simulatedPGNs,
 }: PGNPanelProps) => {
     
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
@@ -180,8 +181,8 @@ const PGNPanel = React.memo(({
 
                 {isListVisible && (
                     <div className="pgn-panel-content">
-                        {selectedPGNs.length === 0 && <div>No PGNs selected</div>}
-                        {selectedPGNs
+                        {selectedPGNs.length === 0 && simulatedPGNs.length === 0 && <div>No PGNs selected</div>}
+                        {Array.from(new Set([...selectedPGNs, ...simulatedPGNs]))
                             .sort((a, b) => parseInt(b) - parseInt(a))
                             .map(pgnKey => {
                                 const definitions = pgnDefinitions[pgnKey];
@@ -190,20 +191,25 @@ const PGNPanel = React.memo(({
                                     return null;
                                 }
 
+                                const isSimulated = simulatedPGNs.includes(pgnKey);
+
                                 return (
                                     <div key={pgnKey} className="pgn-item-container">
-                                        <button 
-                                            className="remove-pgn"
-                                            onClick={() => handleRemovePGN(pgnKey)}
-                                        >
-                                            ×
-                                        </button>
+                                        {!isSimulated && (
+                                            <button 
+                                                className="remove-pgn"
+                                                onClick={() => handleRemovePGN(pgnKey)}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
                                         <PGNItem 
                                             config={definitions}
                                             value={pgnState[pgnKey] || {}}
                                             rate={pgnRates[pgnKey]}
                                             onValueChange={(field, value) => handlePGNChange(pgnKey, field, value)}
                                             onRateChange={(value) => handleRateChange(pgnKey, value)}
+                                            isSimulated={isSimulated}
                                         />
                                     </div>
                                 );

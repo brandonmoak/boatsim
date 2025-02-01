@@ -12,9 +12,6 @@ interface PGNConfig {
 type EmissionIntervals = Record<string, number>;
 let activeEmissions: EmissionIntervals = {};
 
-// Required PGNs that should always be emitted
-const REQUIRED_PGNS = ['129029', '126992', '129025', '129026', '128259'];
-
 // Create a Web Worker for timing
 const timerWorker = new Worker(
   new URL('./timer.worker.ts', import.meta.url)
@@ -58,13 +55,14 @@ export const startEmitting = (
   pgnConfigs: Record<string, PGNConfig>,
   getLatestState: () => Record<string, Record<string, number>>,
   selectedPGNs: string[],
-  pgnRates: Record<string, number>
+  pgnRates: Record<string, number>,
+  requiredPGNs: string[]
 ) => {
   // Stop any existing emissions
   timerWorker.postMessage({ type: 'stop' });
 
   // Create array of unique PGNs including required PGNs
-  const pgnsToEmit = Array.from(new Set([...selectedPGNs, ...REQUIRED_PGNS]));
+  const pgnsToEmit = Array.from(new Set([...selectedPGNs, ...requiredPGNs]));
 
   console.log('PGNs to emit:', pgnsToEmit);
 
