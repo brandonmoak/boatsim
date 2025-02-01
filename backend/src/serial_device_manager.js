@@ -1,43 +1,46 @@
 import EventEmitter from 'events';
 import pkg from '@canboat/canboatjs';
+import { observeProperty } from './property_observer.js';
 const { serial } = pkg;
 
 export class ActisenseSerialDevice {
-    constructor(path) {
+    // app is an EventEmitter that will be used to emit events to the upper level
+    // it will emit events of connection status and errors 
+    constructor(path, app = new EventEmitter()) {
         this.path = path;
-        this.app = new EventEmitter();
+        this.app = app;
         this.status = 'disconnected';
         this.providerId = 'actisense-serial' + this.path;
 
-       // set up the message handlers for the serial device
+       // set up the message handlers for the lower level serial device
        this.app.setProviderStatus = (providerId, status) => {
-            connected = status.includes('connected') && status.includes(this.path);
-            this.status = connected ? 'connected' : 'disconnected';
-            console.log(`Provider ${providerId} status: ${status}`);
-
-            status = this.getStatus();
-            this.emit('serialDeviceStatusChange', status);
+            const not_connected = status.includes('Not connected')
+            if (not_connected) {
+                this.status = 'disconnected';
+                this.emitStatus();
+            }
         };
         
         this.app.setProviderError = (providerId, error) => {
-            this.status = 'error';
-            console.error(`Provider ${providerId} error: ${error}`);
+            this.status = 'disconnected';
+            this.emitError(error);
         };
 
         this.app.on('startupResponseChanged', (data) => {
             console.log("startupResponseChanged", data);
-            if (data.newValue == true) {
+            // Listen for startup response i
+            // (setting provider status emits before receiving feedback from the device)
+            if (this.actisense.gotStartupResponse == true) {
                 this.status = 'connected';
-            } else {
-                this.status = 'disconnected';
-            }
+                this.emitStatus();
+            } 
         });
     }
 
     connect() {
         // Setup Serial Stream parser with our EventEmitter-based app object
         this.actisense = new serial({
-            device: this.devicePath,
+            device: this.path,
             app: this.app,
             outEvent: 'nmea2000out',
             reconnect: true,
@@ -55,7 +58,18 @@ export class ActisenseSerialDevice {
         this.actisense.reconnect = false;
         this.actisense.end();
     }
+
+    emitStatus() {
+        const status = this.getStatus();
+        this.app.emit('serialDeviceStatus', status);
+    }
     
+    emitError(error) {
+        const status = this.getStatus();
+        status ['error'] = error;
+        this.app.emit('serialDeviceError', status);
+    }
+
     getStatus() {
         const status = {
             device: this.path,
@@ -83,9 +97,14 @@ export class ActisenseSerialDevice {
                 fields: data['values']
             };
 
-            this.emit('nmea2000out', msg);
+            this.app.emit('nmea2000out', msg);
             // that.options.app.emit('connectionwrite', { providerId: that.options.providerId })
         }
     }
+}
+
+import MOCK_SERIAL_DEVICES from './mock_serial_devices.json';
+export function listSerialDevices() {
+    return MOCK_SERIAL_DEVICES;
 }
 

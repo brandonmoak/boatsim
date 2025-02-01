@@ -45,21 +45,31 @@ app.get('/api/defaults', async (req, res) => {
   }
 });
 
-// Create boat simulator instance
-const forwarder = new MessageForwarder(io, actisensePath, actisensePath);
+// Create message forwarding instance and set up its routes
+const forwarder = new MessageForwarder(io);
 
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  socket.on('update_pgn_2000', (data) => {
-    forwarder.handlePGNUpdate(data);
-  });
+// Add REST endpoints for device management
+app.get('/api/device/status', (req, res) => {
+    const status = forwarder.actisense.getStatus();
+    res.json(status);
+});
 
-  socket.on('disconnect', (reason) => {
-    console.log('Client disconnected:', {
-      id: socket.id,
-      reason: reason
-    });
-  });
+app.post('/api/device/connect', (req, res) => {
+    try {
+        forwarder.connectSerialDevice(actisensePath);
+        res.json({ message: 'Connection initiated' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/device/disconnect', (req, res) => {
+    try {
+        forwarder.disconnectSerialDevice(actisensePath);
+        res.json({ message: 'Disconnection initiated' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Start server
