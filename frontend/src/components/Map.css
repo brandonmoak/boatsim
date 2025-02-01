@@ -69,4 +69,17 @@
   font-weight: 500;
   color: #333;
   line-height: 1;
+}
+
+.leaflet-control-rotation {
+  font-size: 18px;
+  background-color: #fff;
+  color: #000;
+  text-align: center;
+  line-height: 26px;
+  text-decoration: none;
+}
+
+.leaflet-control-rotation.heads-up {
+  font-size: 20px;
 } 
