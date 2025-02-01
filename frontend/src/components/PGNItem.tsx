@@ -11,6 +11,9 @@ interface PGNItemProps {
 }
 
 const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, onRateChange }) => {
+    // Add state to track intermediate input values
+    const [intermediateValues, setIntermediateValues] = React.useState<Record<string, string>>({});
+
     useEffect(() => {
         if (!value || Object.keys(value).length === 0) {
             // Initialize with default values
@@ -46,10 +49,31 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
         return (2 ** field.BitLength) - 1;
     };
 
-    const handleValueChange = (fieldName: string, value: string) => {
-        // Parse the value and limit to 3 decimal places
+    const handleValueChange = (fieldName: string, inputValue: string) => {
+        // Just update the intermediate value while typing
+        setIntermediateValues(prev => ({
+            ...prev,
+            [fieldName]: inputValue
+        }));
+    };
+
+    const handleValueCommit = (fieldName: string, value: string) => {
+        // Parse and commit the value when focus is lost or Enter is pressed
         const parsedValue = parseFloat(parseFloat(value).toFixed(3));
-        onValueChange(fieldName, parsedValue);
+        if (!isNaN(parsedValue)) {
+            onValueChange(fieldName, parsedValue);
+        }
+        // Clear intermediate value
+        setIntermediateValues(prev => ({
+            ...prev,
+            [fieldName]: ''
+        }));
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent, fieldName: string, value: string) => {
+        if (e.key === 'Enter') {
+            handleValueCommit(fieldName, value);
+        }
     };
 
     const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +141,10 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
                                 <div className="pgn-value-input-group">
                                     <input
                                         type="number"
-                                        value={currentValues[field.Name]?.toFixed(2) || '0.00'}
+                                        value={intermediateValues[field.Name] || currentValues[field.Name]?.toFixed(2) || '0.00'}
                                         onChange={(e) => handleValueChange(field.Name, e.target.value)}
+                                        onBlur={(e) => handleValueCommit(field.Name, e.target.value)}
+                                        onKeyDown={(e) => handleKeyDown(e, field.Name, e.currentTarget.value)}
                                         min={getFieldMin(field)}
                                         max={getFieldMax(field)}
                                         step={getFieldStep(field)}

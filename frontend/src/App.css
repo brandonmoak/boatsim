@@ -25,7 +25,7 @@
   background: white;
   overflow: hidden;
   flex-shrink: 0;  /* Prevent container from shrinking */
-  transition: height 0.3s ease-in-out;
+  /* transition: height 0.3s ease-in-out; */  /* Removed transition */
 }
 
 .pgn-container.collapsed {
@@ -77,7 +77,7 @@
   flex-direction: column;
   height: 100%; /* Ensure full height */
   width: 100%;
-  background: white;
+  background: #f8f9fa;  /* Changed from white to light gray */
   padding: 5px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
@@ -87,10 +87,40 @@
 }
 
 .pgn-panel-header {
-  flex-shrink: 0;  /* Prevent header from shrinking */
-  padding: 12px;
+  flex-shrink: 0;
+  padding: 6px;
+  border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
-  background: white;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pgn-header-left {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pgn-header-center {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.pgn-header-right {
+  display: flex;
+  padding-right: 1rem;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: auto;  /* Ensure clicks are captured */
+  position: relative;    /* Create stacking context */
+  z-index: 1000;        /* Ensure it's above other elements */
 }
 
 .pgn-header-controls {
@@ -445,25 +475,25 @@
 }
 
 .database-button {
-  padding: 8px 16px;
-  background: #0066cc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  height: 32px;
   white-space: nowrap;
-  margin: 0;
 }
 
 .database-button:hover {
-  background: #0052a3;
+  background-color: #0056b3;
 }
 
 .pgn-selector {
   flex: 1;
-  min-width: 200px;
+  min-width: 10px;
 }
 
 .pgn-search-input {
@@ -555,20 +585,103 @@
 }
 
 .toggle-list-button {
-    padding: 8px 16px;
-    background: #0066cc;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.2s;
+    height: 32px;
     white-space: nowrap;
-    margin: 0;
 }
 
 .toggle-list-button:hover {
-    background: #0052a3;
+    background-color: #0056b3;
 }
 
 /* No need for special collapsed state styling since it'll always match the database button */
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: fit-content;
+  padding: 8px;
+  border-radius: 8px;
+  position: relative;
+  pointer-events: auto;  /* Ensure clicks are captured */
+}
+
+.controls button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  height: 32px;
+  white-space: nowrap;
+  position: relative;
+  pointer-events: auto;
+}
+
+.controls button:hover {
+  background-color: #0056b3;
+}
+
+.controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Move navigation display styles from Map.css to App.css */
+.navigation-display {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+/* Add styles for the database and toggle buttons */
+.database-button,
+.toggle-list-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  height: 32px;
+  white-space: nowrap;
+}
+
+.database-button:hover,
+.toggle-list-button:hover {
+  background-color: #0056b3;
+}
+
+/* Add styles for the floating navigation container */
+.floating-nav-container {
+  position: absolute;
+  bottom: 20px;  /* Changed from top to bottom */
+  left: 20px;
+  z-index: 1000;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  border: 1px solid #ddd;
+}
+
+/* Keep existing navigation display styles */
+.navigation-display {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}

@@ -8,6 +8,8 @@ import {
   PGNPanelProps 
 } from '../types';
 import PGNDatabase from './PGNDatabase';
+import Controls from './Controls';
+import NavigationDisplay from './NavigationDisplay';
 
 interface PGNOption {
     value: string;
@@ -23,7 +25,11 @@ const PGNPanel = React.memo(({
   onSelectedPGNsChange,
   defaultPGNs,
   updateDefaultPGNs,
-  getCurrentPGNValues
+  getCurrentPGNValues,
+  onStart,
+  onStop,
+  isSimulating,
+  boatState
 }: PGNPanelProps) => {
     
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
@@ -117,6 +123,15 @@ const PGNPanel = React.memo(({
         document.addEventListener('mouseup', handleMouseUp);
     };
 
+    const handleVisibilityToggle = () => {
+        setIsListVisible(!isListVisible);
+        // Call the global refresh function after state change
+        setTimeout(() => {
+            // @ts-ignore - Global function
+            window.refreshMap?.();
+        }, 0);
+    };
+
     return (
         <div 
             className={`pgn-container ${!isListVisible ? 'collapsed' : ''}`}
@@ -125,19 +140,14 @@ const PGNPanel = React.memo(({
             {isListVisible && <div className="pgn-resize-handle" onMouseDown={handleMouseDown} />}
             <div className="pgn-panel">  
                 <div className="pgn-panel-header">
-                    <div className="pgn-header-controls">
-                        <button 
-                            className="database-button"
-                            onClick={() => setIsDatabaseViewerOpen(true)}
-                        >
-                            View PGN Database
-                        </button>
-                        <button
-                            className="toggle-list-button"
-                            onClick={() => setIsListVisible(!isListVisible)}
-                        >
-                            {isListVisible ? 'Hide PGNs' : 'Show PGNs'}
-                        </button>
+                    <div className="pgn-header-left">
+                        <Controls 
+                            onStart={onStart}
+                            onStop={onStop}
+                            isRunning={isSimulating}
+                        />
+                    </div>
+                    <div className="pgn-header-center">
                         {isListVisible && (
                             <div className="pgn-selector">
                                 <Select
@@ -151,6 +161,20 @@ const PGNPanel = React.memo(({
                                 />
                             </div>
                         )}
+                    </div>
+                    <div className="pgn-header-right">
+                        <button 
+                            className="database-button blue-button"
+                            onClick={() => setIsDatabaseViewerOpen(true)}
+                        >
+                            View PGN Database
+                        </button>
+                        <button
+                            className="toggle-list-button blue-button"
+                            onClick={handleVisibilityToggle}
+                        >
+                            {isListVisible ? 'Hide PGNs' : 'Show PGNs'}
+                        </button>
                     </div>
                 </div>
 
@@ -205,7 +229,10 @@ const PGNPanel = React.memo(({
     return (
         JSON.stringify(prevProps.pgnState) === JSON.stringify(nextProps.pgnState) &&
         JSON.stringify(prevProps.pgnRates) === JSON.stringify(nextProps.pgnRates) &&
-        JSON.stringify(prevProps.selectedPGNs) === JSON.stringify(nextProps.selectedPGNs)
+        JSON.stringify(prevProps.selectedPGNs) === JSON.stringify(nextProps.selectedPGNs) &&
+        prevProps.isSimulating === nextProps.isSimulating &&
+        prevProps.onStart === nextProps.onStart &&
+        prevProps.onStop === nextProps.onStop
     );
 });
 

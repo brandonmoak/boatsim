@@ -174,6 +174,10 @@ function App() {
             defaultPGNs={defaultPGNs}
             updateDefaultPGNs={updateDefaultPGNs}
             getCurrentPGNValues={getCurrentPGNValues}
+            onStart={handleStart}
+            onStop={handleStop}
+            isSimulating={isSimulating}
+            boatState={boatState}
           />
         </div>
       <Simulation 

@@ -26,6 +26,27 @@ const Map: React.FC<MapProps> = ({
   const markerRef = useRef<L.Marker | null>(null);
   const waypointLayerRef = useRef<L.LayerGroup | null>(null);
 
+  // Add public method to refresh map
+  const refreshMap = () => {
+    if (mapRef.current) {
+      setTimeout(() => {
+        mapRef.current?.invalidateSize();
+      }, 300);
+    }
+  };
+
+  // Expose the refresh method to parent components
+  useEffect(() => {
+    if (window) {
+      // @ts-ignore - Adding to window for global access
+      window.refreshMap = refreshMap;
+    }
+    return () => {
+      // @ts-ignore - Cleanup
+      delete window.refreshMap;
+    };
+  }, []);
+
   useEffect(() => {
     mapRef.current = L.map('map').setView([0, 0], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -93,12 +114,7 @@ const Map: React.FC<MapProps> = ({
 
   return (
     <div id="map">
-      <div className="floating-controls-container">
-        <Controls 
-          onStart={onStart}
-          onStop={onStop}
-          isRunning={isSimulating}
-        />
+      <div className="floating-nav-container">
         <NavigationDisplay boatState={boatState} />
       </div>
     </div>

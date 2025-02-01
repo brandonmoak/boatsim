@@ -90,4 +90,8 @@ export interface PGNPanelProps {
   defaultPGNs: Record<string, Record<string, number>>;
   updateDefaultPGNs: (newDefaults: Record<string, Record<string, number>>) => void;
   getCurrentPGNValues: (pgn: string) => Record<string, number>;
+  onStart: () => void;
+  onStop: () => void;
+  isSimulating: boolean;
+  boatState: BoatState;
 }
