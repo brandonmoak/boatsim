@@ -184,8 +184,9 @@
     flex-direction: row;
     align-items: center;
     margin-bottom: 0;  /* Remove margin for database view */
-    font-weight: normal;  /* Keep database description weight normal */
+    font-weight: 500;  /* Keep database description weight normal */
     gap: 8px;
+    overflow: visible;
   }
   
   .default-badge {

@@ -17,6 +17,8 @@ import { getInitialPGNState, getDefaultPGNs } from './utils/pgn_defaults_loader'
 import { startEmitting, stopEmitting} from './utils/pgn_emitter';
 import { loadWaypoints } from './utils/waypoint_loader';
 
+// Add this constant at the top of the file with other imports
+const SIMULATED_PGNS = ['129029', '126992', '129025', '129026', '128259'];
 
 function App() {
   // Create state variables
@@ -71,7 +73,7 @@ function App() {
   const handleStart = () => {
     setIsSimulating(true);
     console.log('Starting simulation');
-    startEmitting(pgnConfig, () => pgnStateRef.current, selectedPGNs, pgnRates);
+    startEmitting(pgnConfig, () => pgnStateRef.current, selectedPGNs, pgnRates, SIMULATED_PGNS);
   };
 
   const handleStop = () => {
@@ -113,7 +115,7 @@ function App() {
       startEmitting(pgnConfig, () => pgnStateRef.current, selectedPGNs, {
         ...pgnRates,
         [system]: rate
-      });
+      }, SIMULATED_PGNS);
     }
     console.log('PGN rate updated:', system, rate);
   };
@@ -124,7 +126,7 @@ function App() {
     if (isSimulating) {
       stopEmitting();
       console.log('Handling selected PGN change:', newSelectedPGNs);
-      startEmitting(pgnConfig, () => pgnStateRef.current, newSelectedPGNs, pgnRates);
+      startEmitting(pgnConfig, () => pgnStateRef.current, newSelectedPGNs, pgnRates, SIMULATED_PGNS);
     }
   };
 
@@ -164,33 +166,23 @@ function App() {
             isSimulating={isSimulating}
           />
         </div>
-        <div className="pgn-container">
-          <button 
-            className="database-button"
-            onClick={() => setIsDatabaseViewerOpen(true)}
-          >
-            View PGN Database
-          </button>
           <PGNPanel 
             pgnState={pgnState}
             pgnRates={pgnRates}
             selectedPGNs={selectedPGNs}
+            simulatedPGNs={SIMULATED_PGNS}
             onPGNFieldsUpdate={handlePGNFieldsUpdate}
             onPGNRateUpdate={handlePGNRateUpdate}
             onSelectedPGNsChange={handleSelectedPGNsChange}
-          />
-          <PGNDatabase
-            isOpen={isDatabaseViewerOpen}
-            onClose={() => setIsDatabaseViewerOpen(false)}
-            pgnDefinitions={pgnConfig}
             defaultPGNs={defaultPGNs}
-            onUpdateDefaults={updateDefaultPGNs}
-            selectedPGNs={selectedPGNs}
-            onAddToSimulation={handleAddToSimulation}
+            updateDefaultPGNs={updateDefaultPGNs}
             getCurrentPGNValues={getCurrentPGNValues}
+            onStart={handleStart}
+            onStop={handleStop}
+            isSimulating={isSimulating}
+            boatState={boatState}
           />
         </div>
-      </div>
       <Simulation 
         isSimulating={isSimulating} 
         onPGNFieldsUpdate={handlePGNFieldsUpdate}
