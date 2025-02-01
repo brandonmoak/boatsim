@@ -108,9 +108,26 @@ const Map: React.FC<MapProps> = ({
       setIsHeadsUp(mapRef.current?.getBearing() !== 0);
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Base map layer (OpenStreetMap)
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(mapRef.current);
+
+    // OpenSeaMap layer
+    const seamapLayer = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
+      attribution: '© OpenSeaMap contributors'
+    }).addTo(mapRef.current);
+
+    // Add layer control
+    const baseLayers = {
+      "OpenStreetMap": osmLayer
+    };
+    
+    const overlays = {
+      "Sea Marks": seamapLayer
+    };
+
+    L.control.layers(baseLayers, overlays).addTo(mapRef.current);
 
     // Create boat marker
     markerRef.current = createBoatMarker({ lat: 0, lon: 0, heading: 0, speed_mps: 0}).addTo(mapRef.current);
