@@ -130,7 +130,13 @@ const Map: React.FC<MapProps> = ({
     L.control.layers(baseLayers, overlays).addTo(mapRef.current);
 
     // Create boat marker
-    markerRef.current = createBoatMarker({ lat: 0, lon: 0, heading: 0, speed_mps: 0}).addTo(mapRef.current);
+    markerRef.current = createBoatMarker({ 
+      lat: 0, 
+      lon: 0, 
+      heading: 0, 
+      speed_mps: 0,
+      iconSize: [24, 24],  // Increased from default size
+    }).addTo(mapRef.current);
     
     // Create waypoint layer group
     waypointLayerRef.current = L.layerGroup().addTo(mapRef.current);
