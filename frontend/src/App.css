@@ -415,7 +415,7 @@
 
 .pgn-header-content {
   display: flex;
-  align-items: center;
+  align-items: right;
   gap: 8px;
   flex: 1;
 }
