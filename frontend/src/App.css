@@ -14,8 +14,8 @@
 
 /* PGN Panel */
 .pgn-container {
-  height: 300px;  /* Initial height */
-  min-height: 100px;
+  height: 70px;  /* Initial height */
+  min-height: 70px;
   max-height: 80vh;
   width: 100%;
   position: relative;
@@ -25,6 +25,11 @@
   background: white;
   overflow: hidden;
   flex-shrink: 0;  /* Prevent container from shrinking */
+  transition: height 0.3s ease-in-out;
+}
+
+.pgn-container.collapsed {
+  overflow: hidden;
 }
 
 /* Resize Handle */
@@ -96,10 +101,11 @@
 }
 
 .pgn-panel-content {
-  flex: 1;  /* Take remaining space */
-  overflow-y: auto;  /* Enable scrolling */
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;  /* Hide horizontal scroll at container level */
   padding: 12px;
-  min-height: 0;  /* Allow container to shrink */
+  min-height: 0;
 }
 
 /* PGN Items */
@@ -116,27 +122,81 @@
   padding: 8px 12px;
   width: 100%;
   display: flex;
+  height: 60px;  /* Fixed height */
+}
+
+.pgn-item-fixed {
+  display: flex;
+  flex: 0 0 auto;
+  position: sticky;
+  left: 0;
+  background: #f8f9fa;
+  padding-right: 12px;
+  z-index: 1;
+  border-right: 1px solid #ddd;
+}
+
+.pgn-item-scrollable {
+  flex: 1;
+  overflow-x: auto;
+  margin-left: 12px;
+  display: flex;
+  align-items: center;  /* Center content vertically */
+  height: 100%;        /* Take full height */
+}
+
+/* Custom scrollbar styling */
+.pgn-item-scrollable::-webkit-scrollbar {
+  height: 4px;  /* Even smaller scrollbar height */
+}
+
+.pgn-item-scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;  /* Smaller radius to match height */
+  margin: 0 4px;  /* Add some margin on the sides */
+}
+
+.pgn-item-scrollable::-webkit-scrollbar-thumb {
+  background: #ddd;  /* Lighter color */
+  border-radius: 2px;
+}
+
+.pgn-item-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #bbb;  /* Slightly darker on hover */
+}
+
+.pgn-values-container {
+  display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
   gap: 12px;
+  min-width: min-content;
+  height: fit-content;
   align-items: center;
+}
+
+.pgn-value {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.pgn-number {
+  background: #0066cc;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
 }
 
 .pgn-description {
   flex: 0 0 150px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.pgn-number {
-  flex-shrink: 0;
-  padding: 2px 4px;
-  font-size: 0.85em;
+  font-weight: 500;
 }
 
 .pgn-rate {
@@ -145,44 +205,65 @@
 }
 
 /* PGN Values */
-.pgn-value {
-  flex: 0 1 auto;
+.pgn-value-label {
+  font-size: 0.75em;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-align: center;  /* Center the text */
+}
+
+.pgn-value-input-group {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-width: 140px;
-  max-width: 200px;
-}
-
-.pgn-value:last-child {
-  margin-bottom: 0;
-}
-
-.pgn-value label {
-  flex: 0 0 60px;
-  font-size: 0.85em;
+  justify-content: center;
+  gap: 4px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  position: relative;  /* For absolute positioning of units */
 }
 
-.pgn-value input,
-.pgn-value select {
-  flex: 1;
-  min-width: 50px;
-  max-width: 100px;
-  padding: 2px 6px;
-  font-size: 0.9em;
+/* Default size for number inputs */
+.pgn-value-input-group input {
+    width: 75px;
+    padding: 2px 4px;
+    font-size: 0.9em;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: right;
+    padding-right: 24px;
 }
 
-.pgn-value span {
-  flex: 0 0 30px;
+/* Wider size for select/enumeration inputs */
+.pgn-value-input-group select {
+    width: 150px;
+    padding: 2px 4px;
+    font-size: 0.9em;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: left;
+    padding-right: 4px;
+}
+
+.pgn-value-unit {
+  position: absolute;
+  right: 4px;
   font-size: 0.8em;
+  color: #666;
+  pointer-events: none;  /* Prevent unit from interfering with input */
+}
+
+/* Ensure proper alignment */
+.pgn-item {
+  align-items: flex-end;
+  padding: 4px;
 }
 
 /* React-Select Styles */
 .pgn-select-container {
   width: 100%;
+  position: relative;
+  z-index: 100;  /* Higher z-index for the container */
 }
 
 .pgn-select__control {
@@ -201,6 +282,9 @@
   border: 1px solid #ddd !important;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
   width: 100% !important;
+  z-index: 101 !important;  /* Even higher z-index for the dropdown */
+  position: absolute !important;
+  background: white !important;
 }
 
 .pgn-select__option {
@@ -421,7 +505,7 @@
   background: #f8f9fa;
   border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 12px 20px 12px 12px;
+  padding: 4px 20px 4px 12px;
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -432,7 +516,7 @@
 }
 
 .pgn-panel .pgn-description {
-  flex: 0 0 200px;
+  flex: 3;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -458,3 +542,33 @@
   border-radius: 4px;
   font-size: 0.9em;
 }
+
+.pgn-fixed-content {
+  display: flex;
+  gap: 12px;
+  align-items: center;  /* Center all children vertically */
+}
+
+/* Wider minimum width for enum values */
+.pgn-value:has(select) {
+    min-width: 150px;
+}
+
+.toggle-list-button {
+    padding: 8px 16px;
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.toggle-list-button:hover {
+    background: #0052a3;
+}
+
+/* No need for special collapsed state styling since it'll always match the database button */

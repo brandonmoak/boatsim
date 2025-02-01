@@ -29,7 +29,9 @@ const PGNPanel = React.memo(({
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [isListVisible, setIsListVisible] = useState(true);
     const draggingRef = useRef(false);
+    const [containerHeight, setContainerHeight] = useState('400px');
 
     useEffect(() => {
         console.log('Loading PGN definitions...');
@@ -38,6 +40,15 @@ const PGNPanel = React.memo(({
             setPgnDefinitions(definitions);
         });
     }, []);
+
+    useEffect(() => {
+        // Set initial height when component mounts
+        if (isListVisible) {
+            setContainerHeight('400px');
+        } else {
+            setContainerHeight('0px');
+        }
+    }, [isListVisible]);
 
     const handlePGNChange = (pgnKey: string, field: string, value: number) => {
         onPGNFieldsUpdate(pgnKey, { [field]: value });
@@ -86,15 +97,13 @@ const PGNPanel = React.memo(({
         if (!container) return;
         
         const startHeight = container.getBoundingClientRect().height;
-        console.log('Start Height:', startHeight);
         
         const handleMouseMove = (e: MouseEvent) => {
             if (!draggingRef.current) return;
             
             const deltaY = startY - e.clientY;
             const newHeight = Math.max(100, Math.min(window.innerHeight * 0.8, startHeight + deltaY));
-            console.log('New Height:', newHeight);
-            container.style.height = `${newHeight}px`;
+            setContainerHeight(`${newHeight}px`);
         };
         
         const handleMouseUp = () => {
@@ -109,8 +118,11 @@ const PGNPanel = React.memo(({
     };
 
     return (
-        <div className="pgn-container">
-            <div className="pgn-resize-handle" onMouseDown={handleMouseDown} />
+        <div 
+            className={`pgn-container ${!isListVisible ? 'collapsed' : ''}`}
+            style={{ height: containerHeight }}
+        >
+            {isListVisible && <div className="pgn-resize-handle" onMouseDown={handleMouseDown} />}
             <div className="pgn-panel">  
                 <div className="pgn-panel-header">
                     <div className="pgn-header-controls">
@@ -120,50 +132,60 @@ const PGNPanel = React.memo(({
                         >
                             View PGN Database
                         </button>
-                        <div className="pgn-selector">
-                            <Select
-                                options={pgnOptions}
-                                onChange={handlePGNSelect}
-                                value={null}
-                                placeholder="Add NMEA 2000 PGN"
-                                className="pgn-select-container"
-                                classNamePrefix="pgn-select"
-                                isClearable={false}
-                            />
-                        </div>
+                        <button
+                            className="toggle-list-button"
+                            onClick={() => setIsListVisible(!isListVisible)}
+                        >
+                            {isListVisible ? 'Hide PGNs' : 'Show PGNs'}
+                        </button>
+                        {isListVisible && (
+                            <div className="pgn-selector">
+                                <Select
+                                    options={pgnOptions}
+                                    onChange={handlePGNSelect}
+                                    value={null}
+                                    placeholder="Add NMEA 2000 PGN"
+                                    className="pgn-select-container"
+                                    classNamePrefix="pgn-select"
+                                    isClearable={false}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div className="pgn-panel-content">
-                    {selectedPGNs.length === 0 && <div>No PGNs selected</div>}
-                    {selectedPGNs
-                        .sort((a, b) => parseInt(b) - parseInt(a))
-                        .map(pgnKey => {
-                            const definitions = pgnDefinitions[pgnKey];
-                            if (!definitions) {
-                                console.log(`No definition found for PGN ${pgnKey}`);
-                                return null;
-                            }
+                {isListVisible && (
+                    <div className="pgn-panel-content">
+                        {selectedPGNs.length === 0 && <div>No PGNs selected</div>}
+                        {selectedPGNs
+                            .sort((a, b) => parseInt(b) - parseInt(a))
+                            .map(pgnKey => {
+                                const definitions = pgnDefinitions[pgnKey];
+                                if (!definitions) {
+                                    console.log(`No definition found for PGN ${pgnKey}`);
+                                    return null;
+                                }
 
-                            return (
-                                <div key={pgnKey} className="pgn-item-container">
-                                    <button 
-                                        className="remove-pgn"
-                                        onClick={() => handleRemovePGN(pgnKey)}
-                                    >
-                                        ×
-                                    </button>
-                                    <PGNItem 
-                                        config={definitions}
-                                        value={pgnState[pgnKey] || {}}
-                                        rate={pgnRates[pgnKey]}
-                                        onValueChange={(field, value) => handlePGNChange(pgnKey, field, value)}
-                                        onRateChange={(value) => handleRateChange(pgnKey, value)}
-                                    />
-                                </div>
-                            );
-                        })}
-                </div>
+                                return (
+                                    <div key={pgnKey} className="pgn-item-container">
+                                        <button 
+                                            className="remove-pgn"
+                                            onClick={() => handleRemovePGN(pgnKey)}
+                                        >
+                                            ×
+                                        </button>
+                                        <PGNItem 
+                                            config={definitions}
+                                            value={pgnState[pgnKey] || {}}
+                                            rate={pgnRates[pgnKey]}
+                                            onValueChange={(field, value) => handlePGNChange(pgnKey, field, value)}
+                                            onRateChange={(value) => handleRateChange(pgnKey, value)}
+                                        />
+                                    </div>
+                                );
+                            })}
+                    </div>
+                )}
             </div>
             {isDatabaseViewerOpen && (
                 <PGNDatabase
