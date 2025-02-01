@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-rotate';
 import './Map.css';
 import { BoatState, Waypoint } from '../types';
 import { createBoatMarker, createBoatIcon } from './Boat';
 import NavigationDisplay from './NavigationDisplay';
-import Controls from './Controls';
 
 interface MapProps {
   boatState: BoatState;
@@ -13,6 +13,29 @@ interface MapProps {
   onStart: () => void;
   onStop: () => void;
   isSimulating: boolean;
+}
+
+// Update the interface definition
+declare module 'leaflet' {
+  interface MapOptions {
+    rotate?: boolean;
+    rotateControl?: boolean | {
+      closeOnZeroBearing: boolean;
+      position: string;
+      buttonOptions?: {
+        states: { stateName: string; icon: string; title: string }[];
+      };
+    };
+  }
+
+  interface Map {
+    setBearing(bearing: number): void;
+    getBearing(): number;
+  }
+}
+
+interface RotationControlType extends L.Control {
+  _updateInterval?: ReturnType<typeof setInterval>;
 }
 
 const Map: React.FC<MapProps> = ({ 
@@ -25,6 +48,7 @@ const Map: React.FC<MapProps> = ({
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const waypointLayerRef = useRef<L.LayerGroup | null>(null);
+  const [isHeadsUp, setIsHeadsUp] = useState(false);
 
   // Add public method to refresh map
   const refreshMap = () => {
@@ -47,8 +71,43 @@ const Map: React.FC<MapProps> = ({
     };
   }, []);
 
+  // Initialize map with rotation support
   useEffect(() => {
-    mapRef.current = L.map('map').setView([0, 0], 12);
+    mapRef.current = L.map('map', {
+      rotate: true,
+      rotateControl: false
+    }).setView([0, 0], 12);
+
+    // Create custom rotation control
+    const RotationControl = L.Control.extend({
+      onAdd: function() {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const button = L.DomUtil.create('a', 'leaflet-control-rotation', container);
+        button.innerHTML = '⇧';
+        button.href = '#';
+        button.title = 'Toggle Heads Up/North Up';
+        
+        L.DomEvent.on(button, 'click', (e) => {
+          L.DomEvent.preventDefault(e);
+          L.DomEvent.stopPropagation(e);
+          setIsHeadsUp(prev => {
+            button.innerHTML = !prev ? 'N' : '⇧';
+            button.classList.toggle('heads-up', !prev);
+            return !prev;
+          });
+        });
+        
+        return container;
+      }
+    });
+
+    new RotationControl({ position: 'topleft' }).addTo(mapRef.current);
+
+    // Add rotation event handler
+    mapRef.current.on('rotate', () => {
+      setIsHeadsUp(mapRef.current?.getBearing() !== 0);
+    });
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(mapRef.current);
@@ -75,14 +134,23 @@ const Map: React.FC<MapProps> = ({
     };
   }, []);
 
+  // Update boat position and rotation
   useEffect(() => {
     if (markerRef.current && mapRef.current) {
       const newPos: L.LatLngExpression = [boatState.lat, boatState.lon];
       markerRef.current.setLatLng(newPos);
-      markerRef.current.setIcon(createBoatIcon(boatState.heading));
+      
+      if (isHeadsUp) {
+        mapRef.current.setBearing(-boatState.heading);
+        markerRef.current.setIcon(createBoatIcon(0));
+      } else {
+        mapRef.current.setBearing(0);
+        markerRef.current.setIcon(createBoatIcon(boatState.heading));
+      }
+      
       mapRef.current.panTo(newPos);
     }
-  }, [boatState]);
+  }, [boatState, isHeadsUp]);
 
   useEffect(() => {
     if (waypointLayerRef.current && mapRef.current) {
