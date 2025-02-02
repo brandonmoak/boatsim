@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import pkg from '@canboat/canboatjs';
-import { observeProperty } from './property_observer.js';
+import { observeProperty } from './utils/property_observer.js';
 const { serial } = pkg;
 
 export class ActisenseSerialDevice {
@@ -117,8 +117,19 @@ export class ActisenseSerialDevice {
     }
 }
 
+import { readdir } from 'fs/promises';
+
+const path = '/dev/serial/by-id/';
+
+export async function listSerialDevices() {
+    const devices = await readdir(path);
+    console.log('USB Devices:', devices);
+    devices = devices.filter(device => device.includes('Actisense_NGX-1'));
+    return devices;
+}
+
 import { MOCK_SERIAL_DEVICES } from '../test/mock.js';
-export function listSerialDevices() {
+export function listSerialDevicesMock() {
     const paths = MOCK_SERIAL_DEVICES.map(device => device.path);
     return paths;
 }

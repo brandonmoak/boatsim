@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import dgram from 'dgram'
-import { PgnStatsManager } from './pgn_state_manager.js';
+import { PgnStatsManager } from './utils/pgn_stats_manager.js';
 import { ActisenseSerialDevice, listSerialDevices } from './actisense_serial_device.js';
 
 class MessageForwarder extends EventEmitter {

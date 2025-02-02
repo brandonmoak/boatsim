@@ -1,10 +1,10 @@
 import express from 'express';
 import { createServer } from 'http';
-import { MessageForwarder } from './message_forwarder.js';
 import path from 'path';
 import fs from 'fs';
-import { configureServer } from './server_config.js';
-import { saveDefaults, getDefaults } from './storage.js';
+import { MessageForwarder } from './message_forwarder.js';
+import { configureServer } from './utils/server_config.js';
+import { saveDefaults, getDefaults } from './utils/storage.js';
 
 // configure the environment 
 const actisensePath = '/dev/serial/by-id/usb-Actisense_NGX-1_4CD81-if00-port0';
@@ -55,16 +55,17 @@ app.get('/api/device/status', (req, res) => {
 });
 
 app.post('/api/device/connect', (req, res) => {
+    console.log("Connection request for device", req.body);
     try {
-        console.log("Connection request for device", req.body);
         if (req.body.devicePath.startsWith("tcp://")) {
+            return res.status(500).json({ error: "TCP devices not yet supported" });
             // forwarder.connectTcpDevice(req.body.devicePath);
         } else {
             forwarder.connectSerialDevice(req.body.devicePath);
+            return res.json({ message: 'Connection initiated' });
         }
-        res.json({ message: 'Connection initiated' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message });
     }
 });
 
