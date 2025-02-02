@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import dgram from 'dgram'
 import { PgnStatsManager } from './pgn_state_manager.js';
-import { ActisenseSerialDevice } from './serial_device_manager.js';
+import { ActisenseSerialDevice, listSerialDevices } from './actisense_serial_device.js';
 
 class MessageForwarder extends EventEmitter {
     constructor(io) {
@@ -14,7 +14,6 @@ class MessageForwarder extends EventEmitter {
         this.devices = {};
         this.setupSubscribers();
         this.setupPublishers();
-        
     }
 
     setupSubscribers() {
@@ -43,6 +42,7 @@ class MessageForwarder extends EventEmitter {
         });
 
         this.on('serialDeviceError', (error) => {
+            console.log("ERROR CONNECTING TO DEVICE", error);
             this.io.emit('device_error', error);
         });
 
@@ -55,14 +55,27 @@ class MessageForwarder extends EventEmitter {
 
     getEachDeviceStatus() {
         const status = {};
-        for (const devicePath in this.devices) {
-            status[devicePath] = this.devices[devicePath].getStatus();
+        const all_devices = listSerialDevices();
+
+        for (const devicePath of all_devices) {
+            if (this.devices[devicePath]) {
+                status[devicePath] = this.devices[devicePath].getStatus();
+            } else {
+                status[devicePath] = {
+                    path: devicePath,
+                    type: 'actisense',
+                    status: 'disconnected',
+                    timestamp: Date.now()
+                };
+            }
         }
         return status;
     }
 
     connectSerialDevice(devicePath) {
         const actisense = new ActisenseSerialDevice(devicePath, this);
+        actisense.connect();
+        actisense.status = 'connected';
         this.devices[devicePath] = actisense;
     }
 
@@ -85,9 +98,20 @@ class MessageForwarder extends EventEmitter {
         this.BROADCAST_ADDRESS = '127.0.0.1';
     }
 
+    anyDevicesConnected() {
+        const status = this.getEachDeviceStatus();
+        return Object.values(status).some(device => device.status === 'connected');
+    }
+
     handlePGNUpdate(dataArray) {
         this.statsManager.updateStats(dataArray);
-        this.actisense.write(dataArray);
+        if (!this.anyDevicesConnected()) {
+            return {'status': 'no_devices_connected'};
+        }
+        for (const device of Object.values(this.devices)) {
+            device.write(dataArray);
+        }
+        return {'status': 'success'};
     }
 
     // Add cleanup method to clear interval

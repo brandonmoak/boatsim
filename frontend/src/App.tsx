@@ -4,7 +4,7 @@ import './App.css';
 import Map from './components/Map';
 import PGNPanel from './components/PGNPanel';
 import SimulationController from './components/SimulationController';
-import { wirePGNsToBoatState } from './core/Simulation';
+import DeviceConnector from './components/DeviceConnector';
 // Types
 import { 
   PGNState,
@@ -13,6 +13,7 @@ import {
   Waypoint,
 } from './types';
 // Utils
+import { wirePGNsToBoatState } from './core/Simulation';
 import { initSocket } from './utils/socket';
 import { loadPGNConfig } from './utils/pgn_definition_loader';
 import { getInitialPGNState, getDefaultPGNs } from './utils/pgn_defaults_loader';
@@ -95,29 +96,29 @@ function App() {
             waypoints={waypoints}
           />
         </div>
-          <PGNPanel 
-            pgnState={pgnState}
-            pgnRates={pgnRates}
-            selectedPGNs={selectedPGNs}
-            simulatedPGNs={SIMULATED_PGNS}
-            onPGNFieldsUpdate={handlePGNFieldsUpdate}
-            onPGNRateUpdate={handlePGNRateUpdate}
-            onSelectedPGNsChange={handleSelectedPGNsChange}
-            defaultPGNs={defaultPGNs}
-            updateDefaultPGNs={(newDefaults: PGNDefaults) => {setDefaultPGNs(newDefaults)}}
-            getCurrentPGNValues={(pgn: string) => getCurrentPGNValues(pgn, pgnState)}
-            onStart={() => {
-              setIsSimulating(true);
-              pgnEmitter?.start();
-            }}
-            onStop={() => {
-              setIsSimulating(false);
-              pgnEmitter?.stop();
-            }}
-            isSimulating={isSimulating}
-            boatState={boatState}
-          />
-        </div>
+        <PGNPanel 
+          pgnState={pgnState}
+          pgnRates={pgnRates}
+          selectedPGNs={selectedPGNs}
+          simulatedPGNs={SIMULATED_PGNS}
+          onPGNFieldsUpdate={handlePGNFieldsUpdate}
+          onPGNRateUpdate={handlePGNRateUpdate}
+          onSelectedPGNsChange={handleSelectedPGNsChange}
+          defaultPGNs={defaultPGNs}
+          updateDefaultPGNs={(newDefaults: PGNDefaults) => {setDefaultPGNs(newDefaults)}}
+          getCurrentPGNValues={(pgn: string) => getCurrentPGNValues(pgn, pgnState)}
+          onStart={() => {
+            setIsSimulating(true);
+            pgnEmitter?.start();
+          }}
+          onStop={() => {
+            setIsSimulating(false);
+            pgnEmitter?.stop();
+          }}
+          isSimulating={isSimulating}
+          boatState={boatState}
+        />
+      </div>
       <SimulationController
         isSimulating={isSimulating} 
         onPGNFieldsUpdate={handlePGNFieldsUpdate}

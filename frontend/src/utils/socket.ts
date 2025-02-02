@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { useDeviceStore } from '../stores/deviceStore';
 
 let socket: Socket | null = null;
 
@@ -41,16 +42,25 @@ export const initSocket = (): Socket => {
             }
         });
 
+        socket.on('device_error', (error) => {
+            console.log("Device error received:", error);
+            // Extract the error message from the complex error object
+            const errorMessage = typeof error === 'object' 
+                ? (error.error || error.message || JSON.stringify(error))
+                : String(error);
+            useDeviceStore.getState().setError(errorMessage);
+        });
+
         socket.on('disconnect', (reason) => {
             console.log('Socket disconnected:', reason);
         });
 
         socket.io.on('ping', () => {
-            console.log('Socket ping');
+            //console.log('Socket ping');
         });
 
         socket.io.engine?.on('packet', (packet: any) => {
-            console.log('Socket packet:', packet);
+            //console.log('Socket packet:', packet);
         });
     }
     return socket;

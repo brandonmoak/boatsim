@@ -11,9 +11,12 @@ export class ActisenseSerialDevice {
         this.app = app;
         this.status = 'disconnected';
         this.providerId = 'actisense-serial' + this.path;
+        this.MAX_RETRIES = 2;
+        this.retries = 0;
 
        // set up the message handlers for the lower level serial device
        this.app.setProviderStatus = (providerId, status) => {
+            console.log("setProviderStatus", status);
             const not_connected = status.includes('Not connected')
             if (not_connected) {
                 this.status = 'disconnected';
@@ -22,8 +25,18 @@ export class ActisenseSerialDevice {
         };
         
         this.app.setProviderError = (providerId, error) => {
-            this.status = 'disconnected';
-            this.emitError(error);
+            console.log("setProviderError", error);
+            if (error.includes('cannot open')) {
+                this.retries++;
+                if (this.retries > this.MAX_RETRIES) {
+                    this.status = 'disconnected';
+                    this.actisense.reconnect = false;
+                    this.emitError(error);
+                }
+            } else {
+                this.status = 'disconnected';
+                this.emitError(error);
+            }
         };
 
         this.app.on('startupResponseChanged', (data) => {
@@ -74,6 +87,7 @@ export class ActisenseSerialDevice {
         const status = {
             device: this.path,
             status: this.status,
+            type: 'actisense',
             timestamp: Date.now()
         }
         return status;
@@ -105,6 +119,7 @@ export class ActisenseSerialDevice {
 
 import { MOCK_SERIAL_DEVICES } from '../test/mock.js';
 export function listSerialDevices() {
-    return MOCK_SERIAL_DEVICES;
+    const paths = MOCK_SERIAL_DEVICES.map(device => device.path);
+    return paths;
 }
 

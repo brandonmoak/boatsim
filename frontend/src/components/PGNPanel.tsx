@@ -10,6 +10,7 @@ import {
 import PGNDatabase from './PGNDatabase';
 import Controls from './Controls';
 import NavigationDisplay from './NavigationDisplay';
+import DeviceConnector from './DeviceConnector';
 
 interface PGNOption {
     value: string;
@@ -35,6 +36,7 @@ const PGNPanel = React.memo(({
     
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
+    const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isListVisible, setIsListVisible] = useState(true);
     const draggingRef = useRef(false);
@@ -85,14 +87,6 @@ const PGNPanel = React.memo(({
         value: key,
         label: `${key} - ${defs?.Description || 'Unknown'}`
     }));
-
-    // Add debug logging
-    console.log('Rendering PGNPanel with:', {
-        selectedPGNs,
-        pgnState,
-        pgnRates,
-        definitionsLoaded: Object.keys(pgnDefinitions).length > 0
-    });
 
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -147,6 +141,12 @@ const PGNPanel = React.memo(({
                             onStop={onStop}
                             isRunning={isSimulating}
                         />
+                        <button
+                            className="blue-button toggle-list-button"
+                            onClick={handleVisibilityToggle}
+                        >
+                            {isListVisible ? 'Hide Simulated PGNs' : 'Show Simulated PGNs'}
+                        </button>
                     </div>
                     <div className="pgn-header-center">
                         {isListVisible && (
@@ -170,11 +170,11 @@ const PGNPanel = React.memo(({
                         >
                             View PGN Database
                         </button>
-                        <button
-                            className="toggle-list-button blue-button"
-                            onClick={handleVisibilityToggle}
+                        <button 
+                            className="device-button blue-button"
+                            onClick={() => setIsDeviceMenuOpen(!isDeviceMenuOpen)}
                         >
-                            {isListVisible ? 'Hide PGNs' : 'Show PGNs'}
+                            Configure Devices
                         </button>
                     </div>
                 </div>
@@ -227,6 +227,12 @@ const PGNPanel = React.memo(({
                     selectedPGNs={selectedPGNs}
                     onAddToSimulation={handleAddToSimulation}
                     getCurrentPGNValues={getCurrentPGNValues}
+                />
+            )}
+            {isDeviceMenuOpen && (
+                <DeviceConnector 
+                    className="device-menu-overlay" 
+                    onClose={() => setIsDeviceMenuOpen(false)}
                 />
             )}
         </div>

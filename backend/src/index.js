@@ -50,13 +50,18 @@ const forwarder = new MessageForwarder(io);
 
 // Add REST endpoints for device management
 app.get('/api/device/status', (req, res) => {
-    const status = forwarder.actisense.getStatus();
+    const status = forwarder.getEachDeviceStatus();
     res.json(status);
 });
 
 app.post('/api/device/connect', (req, res) => {
     try {
-        forwarder.connectSerialDevice(actisensePath);
+        console.log("Connection request for device", req.body);
+        if (req.body.devicePath.startsWith("tcp://")) {
+            // forwarder.connectTcpDevice(req.body.devicePath);
+        } else {
+            forwarder.connectSerialDevice(req.body.devicePath);
+        }
         res.json({ message: 'Connection initiated' });
     } catch (error) {
         res.status(500).json({ error: error.message });
