@@ -114,10 +114,14 @@ class MessageForwarder extends EventEmitter {
     }
 
     handlePGNUpdate(dataArray) {
-        this.statsManager.updateStats(dataArray);
+        dataArray.forEach(data => this.statsManager.updateStats(data['pgn_id']));
+
+        // if no devices connected, don't forward
         if (!this.anyDevicesConnected()) {
             return {'status': 'no_devices_connected'};
         }
+
+        // forward to all connected devices
         for (const device of Object.values(this.devices)) {
             device.write(dataArray);
         }

@@ -2,12 +2,25 @@ import EventEmitter from 'events';
 import pkg from '@canboat/canboatjs';
 import { observeProperty } from './utils/property_observer.js';
 const { serial } = pkg;
+import { readdir } from 'fs/promises';
+
+export const USB_PATH = '/dev/serial/by-id/';
+
+function getFullPath(device) {
+    return USB_PATH + device;
+}
+
+export async function listSerialDevices() {
+    const devices = await readdir(USB_PATH);
+    const filteredDevices = devices.filter(device => device.includes('Actisense_NGX-1'));
+    return filteredDevices || [];
+}
 
 export class ActisenseSerialDevice {
     // app is an EventEmitter that will be used to emit events to the upper level
     // it will emit events of connection status and errors 
     constructor(path, app = new EventEmitter()) {
-        this.path = path;
+        this.path = getFullPath(path);
         this.app = app;
         this.status = 'disconnected';
         this.providerId = 'actisense-serial' + this.path;
@@ -33,7 +46,13 @@ export class ActisenseSerialDevice {
                     this.actisense.reconnect = false;
                     this.emitError(error);
                 }
-            } else {
+            } else if (error.includes('Closed, reconnecting')) {
+                // this means we've disconnected manually
+                // emit status instead of error
+                this.status = 'disconnected';
+                this.emitStatus();
+            }
+             else {
                 this.status = 'disconnected';
                 this.emitError(error);
             }
@@ -117,16 +136,6 @@ export class ActisenseSerialDevice {
     }
 }
 
-import { readdir } from 'fs/promises';
-
-const path = '/dev/serial/by-id/';
-
-export async function listSerialDevices() {
-    const devices = await readdir(path);
-    console.log('USB Devices:', devices);
-    const filteredDevices = devices.filter(device => device.includes('Actisense_NGX-1'));
-    return filteredDevices || [];
-}
 
 import { MOCK_SERIAL_DEVICES } from '../test/mock.js';
 export function listSerialDevicesMock() {

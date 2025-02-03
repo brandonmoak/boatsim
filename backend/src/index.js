@@ -23,6 +23,11 @@ const { corsMiddleware, io } = configureServer(httpServer, frontendPort);
 app.use(corsMiddleware);
 app.use(express.json()); // Add JSON body parsing
 
+app.use((req, res, next) => {
+  console.log(`Incoming ${req.method} request for ${req.url}`);
+  next();
+});
+
 // Add route for saving defaults
 app.post('/api/defaults', async (req, res) => {
   try {
@@ -71,7 +76,8 @@ app.post('/api/device/connect', (req, res) => {
 
 app.post('/api/device/disconnect', (req, res) => {
     try {
-        forwarder.disconnectSerialDevice(actisensePath);
+        console.log("Disconnection request for device", req.body);
+        forwarder.disconnectSerialDevice(req.body.devicePath);
         res.json({ message: 'Disconnection initiated' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -79,6 +85,6 @@ app.post('/api/device/disconnect', (req, res) => {
 });
 
 // Start server
-httpServer.listen(backendPort, () => {
+httpServer.listen(backendPort, '0.0.0.0', () => {
   console.log(`Server running on port ${backendPort}`);
 }); 
