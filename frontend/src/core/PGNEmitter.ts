@@ -72,7 +72,14 @@ export class PGNEmitter {
       values: values
     };
 
-    console.log('Emitting PGN:', pgnUpdate);
+    if (config.PGN === 129029 || config.PGN == 129025) {
+      if (values.Latitude === 0 || values.Longitude === 0) { 
+        console.log('Latitude or Longitude is 0, skipping PGN emission');
+        return;
+      }
+    }
+
+    // console.log('Emitting PGN:', pgnUpdate);
     socket.volatile.emit('update_pgn_2000', [pgnUpdate]);
   }
 
