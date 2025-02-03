@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { deviceApi } from '../services/api';
 
 interface DeviceStatus {
     status: 'connected' | 'disconnected';
@@ -58,12 +59,11 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
     // Async actions
     fetchDeviceStatus: async () => {
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL;
-            const response = await fetch(`https://${backendUrl}/api/device/status`);
-            if (!response.ok) throw new Error('Failed to fetch device status');
-            const devices = await response.json();
+            const devices = await deviceApi.getStatus();
+            console.log("devices", devices);
             set({ devices });
         } catch (error) {
+            console.error('Error fetching device status:', error);
             set({ error: error instanceof Error ? error.message : 'Failed to fetch device status' });
         }
     },
@@ -71,19 +71,9 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
     connectDevice: async (devicePath) => {
         set({ isConnecting: true, error: null });
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL;
-            const response = await fetch(`https://${backendUrl}/api/device/connect`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ devicePath }),
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to connect device');
-            }
+            await deviceApi.connect(devicePath);
             await get().fetchDeviceStatus();
         } catch (error) {
-            // Ensure we're setting a string as the error
             const errorMessage = error instanceof Error ? error.message : 'Failed to connect device';
             set({ error: errorMessage });
         } finally {
@@ -93,16 +83,11 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 
     disconnectDevice: async (devicePath) => {
         try {
-            const backendUrl = process.env.REACT_APP_BACKEND_URL;
-            const response = await fetch(`https://${backendUrl}/api/device/disconnect`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ devicePath }),
-            });
-            if (!response.ok) throw new Error('Failed to disconnect device');
+            await deviceApi.disconnect(devicePath);
             await get().fetchDeviceStatus();
         } catch (error) {
-            set({ error: error instanceof Error ? error.message : 'Failed to disconnect device' });
+            const errorMessage = error instanceof Error ? error.message : 'Failed to disconnect device';
+            set({ error: errorMessage });
         }
     },
 })); 

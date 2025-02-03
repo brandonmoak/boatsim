@@ -6,9 +6,8 @@ let socket: Socket | null = null;
 export const initSocket = (): Socket => {
     if (!socket) {
         const backendUrl = process.env.REACT_APP_BACKEND_URL;
-        const url = `https://${backendUrl}`;
-        console.log(url);
-        socket = io(url, {
+        console.log(backendUrl);
+        socket = io(backendUrl, {
             transports: ['websocket'],
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,

@@ -3,6 +3,7 @@ import { PGNDatabaseProps, TabType } from './types';
 import PGNDatabaseHeader from './PGNDatabaseHeader';
 import PGNItem from './PGNItem';
 import './PGNDatabase.css';
+import { pgnApi } from '../../services/api';
 
 const PGNDatabase: React.FC<PGNDatabaseProps> = ({
   isOpen,
@@ -67,24 +68,8 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
     setSaveError(null);
 
     try {
-      const backendPort = process.env.REACT_APP_BACKEND_PORT;
-      const response = await fetch(`http://localhost:${backendPort}/api/defaults`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(defaultPGNs)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to save defaults: ${response.statusText}`);
-      }
-
-      // Optional: Update local state with server response if needed
-      const savedDefaults = await response.json();
+      const savedDefaults = await pgnApi.saveDefaults(defaultPGNs);
       onUpdateDefaults(savedDefaults);
-
-      // Show success message
       alert('Default values saved successfully!');
     } catch (error) {
       console.error('Error saving defaults:', error);

@@ -14,7 +14,7 @@ import {
 } from './types';
 // Utils
 import { wirePGNsToBoatState } from './core/Simulation';
-import { initSocket } from './utils/socket';
+import { initSocket } from './services/socket';
 import { loadPGNConfig } from './utils/pgn_definition_loader';
 import { getInitialPGNState, getDefaultPGNs } from './utils/pgn_defaults_loader';
 import { loadWaypoints } from './utils/waypoint_loader';

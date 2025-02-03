@@ -1,4 +1,4 @@
-import { getSocket } from '../utils/socket';
+import { getSocket } from '../services/socket';
 import { PGNDefinition } from '../types';
 
 export class PGNEmitter {
