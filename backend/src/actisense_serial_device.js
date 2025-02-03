@@ -124,8 +124,8 @@ const path = '/dev/serial/by-id/';
 export async function listSerialDevices() {
     const devices = await readdir(path);
     console.log('USB Devices:', devices);
-    devices = devices.filter(device => device.includes('Actisense_NGX-1'));
-    return devices;
+    const filteredDevices = devices.filter(device => device.includes('Actisense_NGX-1'));
+    return filteredDevices || [];
 }
 
 import { MOCK_SERIAL_DEVICES } from '../test/mock.js';

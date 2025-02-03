@@ -53,9 +53,18 @@ class MessageForwarder extends EventEmitter {
         }, 1000); // Send status every second
     }
 
-    getEachDeviceStatus() {
+    async getEachDeviceStatus() {
         const status = {};
-        const all_devices = listSerialDevices();
+        try {
+            const all_devices = await listSerialDevices();
+        } catch (error) {
+            this.io.emit('device_error', error.message);
+            return status;
+        }
+
+        if (all_devices.length === 0) {
+            return status;
+        }
 
         for (const devicePath of all_devices) {
             if (this.devices[devicePath]) {

@@ -49,8 +49,8 @@ app.get('/api/defaults', async (req, res) => {
 const forwarder = new MessageForwarder(io);
 
 // Add REST endpoints for device management
-app.get('/api/device/status', (req, res) => {
-    const status = forwarder.getEachDeviceStatus();
+app.get('/api/device/status', async (req, res) => {
+    const status = await forwarder.getEachDeviceStatus();
     res.json(status);
 });
 

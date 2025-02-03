@@ -58,8 +58,9 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
     // Async actions
     fetchDeviceStatus: async () => {
         try {
+            const backendUrl = process.env.REACT_APP_BACKEND_URL;
             const backendPort = process.env.REACT_APP_BACKEND_PORT;
-            const response = await fetch(`http://localhost:${backendPort}/api/device/status`);
+            const response = await fetch(`http://${backendUrl}:${backendPort}/api/device/status`);
             if (!response.ok) throw new Error('Failed to fetch device status');
             const devices = await response.json();
             set({ devices });
@@ -71,8 +72,9 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
     connectDevice: async (devicePath) => {
         set({ isConnecting: true, error: null });
         try {
+            const backendUrl = process.env.REACT_APP_BACKEND_URL;
             const backendPort = process.env.REACT_APP_BACKEND_PORT;
-            const response = await fetch(`http://localhost:${backendPort}/api/device/connect`, {
+            const response = await fetch(`http://${backendUrl}:${backendPort}/api/device/connect`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ devicePath }),
@@ -93,8 +95,9 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 
     disconnectDevice: async (devicePath) => {
         try {
+            const backendUrl = process.env.REACT_APP_BACKEND_URL;
             const backendPort = process.env.REACT_APP_BACKEND_PORT;
-            const response = await fetch(`http://localhost:${backendPort}/api/device/disconnect`, {
+            const response = await fetch(`http://${backendUrl}:${backendPort}/api/device/disconnect`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ devicePath }),
