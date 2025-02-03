@@ -109,8 +109,7 @@ class MessageForwarder extends EventEmitter {
     }
 
     anyDevicesConnected() {
-        const status = this.getEachDeviceStatus();
-        return Object.values(status).some(device => device.status === 'connected');
+        return Object.values(this.devices).some(device => device.status === 'connected');
     }
 
     handlePGNUpdate(dataArray) {
