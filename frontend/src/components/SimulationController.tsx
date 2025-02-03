@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Simulation } from '../core/Simulation';
 import { BoatState, Waypoint } from '../types';
+import { usePGNStore } from '../stores/pgnStore';
 
 interface SimulationControllerProps {
   isSimulating: boolean;
-  onPGNFieldsUpdate: (system: string, fields: any) => void;
   waypoints: Waypoint[];
   boatState: BoatState;
   setBoatState: (state: BoatState) => void;
@@ -12,11 +12,12 @@ interface SimulationControllerProps {
 
 function SimulationController({ 
   isSimulating, 
-  onPGNFieldsUpdate,
   waypoints,
   boatState,
   setBoatState
 }: SimulationControllerProps) {
+
+  const { pgnState } = usePGNStore();
   const simulationRef = useRef<Simulation | null>(null);
 
   useEffect(() => {
@@ -27,10 +28,7 @@ function SimulationController({
     console.log('Initializing simulation with waypoints:', waypoints);
     // Initialize simulation
     simulationRef.current = new Simulation(
-      boatState,
-      setBoatState,
       waypoints,
-      onPGNFieldsUpdate
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once
@@ -43,6 +41,14 @@ function SimulationController({
     }
   }, [waypoints]);
 
+  useEffect(() =>{
+    // Take the speed from the pgnState and update the boatState
+    setBoatState({
+      ...boatState,
+      speed_mps: pgnState['128259']['Speed Water Referenced']
+    });
+  }, [pgnState])
+
   // Handle simulation start/stop
   useEffect(() => {
     if (!simulationRef.current) return;
@@ -50,10 +56,7 @@ function SimulationController({
     if (isSimulating) {
       const intervalId = setInterval(() => {
         console.log('Updating position', boatState);
-        const newPosition = simulationRef.current?.updatePosition(boatState);
-        if (newPosition) {
-          setBoatState(newPosition);
-        }
+        simulationRef.current?.updatePosition(boatState);
       }, 1000); // 1000ms = 1Hz
 
       // Cleanup interval when isSimulating changes to false or component unmounts

@@ -3,34 +3,40 @@ import Select from 'react-select';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
 import { loadPGNConfig } from '../utils/pgn_definition_loader';
-import { 
-  PGNPanelProps 
-} from '../types';
 import PGNDatabase from './PGNDatabase';
 import DeviceConnector from './DeviceConnector';
+import { usePGNStore } from '../stores/pgnStore';
 
 interface PGNOption {
     value: string;
     label: string;
 }
 
+// Update PGNPanel props interface
+export interface PGNPanelProps {
+  selectedPGNs: string[];
+  simulatedPGNs: string[];
+  onSelectedPGNsChange: (pgns: string[]) => void;
+  defaultPGNs: Record<string, Record<string, number>>;
+  updateDefaultPGNs: (newDefaults: Record<string, Record<string, number>>) => void;
+  onStart: () => void;
+  onStop: () => void;
+  isSimulating: boolean;
+}
+
 const PGNPanel = React.memo(({ 
-  pgnState, 
-  pgnRates, 
   selectedPGNs,
-  onPGNFieldsUpdate,
-  onPGNRateUpdate, 
   onSelectedPGNsChange,
   defaultPGNs,
   updateDefaultPGNs,
-  getCurrentPGNValues,
   onStart,
   onStop,
   isSimulating,
-  boatState,
   simulatedPGNs,
 }: PGNPanelProps) => {
-    
+
+    const { pgnState, pgnRates, fetchPGNFields, updatePGNRate, updatePGNFields } = usePGNStore();
+
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
     const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
@@ -58,11 +64,11 @@ const PGNPanel = React.memo(({
     }, [isListVisible]);
 
     const handlePGNChange = (pgnKey: string, field: string, value: number) => {
-        onPGNFieldsUpdate(pgnKey, { [field]: value });
+        updatePGNFields(pgnKey, { [field]: value });
     };
 
     const handleRateChange = (pgnKey: string, value: number) => {
-        onPGNRateUpdate(pgnKey, value);
+        updatePGNRate(pgnKey, value);
     };
 
     const handlePGNSelect = (option: PGNOption | null) => {
@@ -238,7 +244,7 @@ const PGNPanel = React.memo(({
                     onUpdateDefaults={updateDefaultPGNs}
                     selectedPGNs={selectedPGNs}
                     onAddToSimulation={handleAddToSimulation}
-                    getCurrentPGNValues={getCurrentPGNValues}
+                    getCurrentPGNValues={fetchPGNFields}
                 />
             )}
             {isDeviceMenuOpen && (
@@ -252,8 +258,6 @@ const PGNPanel = React.memo(({
     );
 }, (prevProps, nextProps) => {
     return (
-        JSON.stringify(prevProps.pgnState) === JSON.stringify(nextProps.pgnState) &&
-        JSON.stringify(prevProps.pgnRates) === JSON.stringify(nextProps.pgnRates) &&
         JSON.stringify(prevProps.selectedPGNs) === JSON.stringify(nextProps.selectedPGNs) &&
         prevProps.isSimulating === nextProps.isSimulating &&
         prevProps.onStart === nextProps.onStart &&

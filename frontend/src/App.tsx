@@ -1,33 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
-// Components
-import Map from './components/Map';
-import PGNPanel from './components/PGNPanel';
-import SimulationController from './components/SimulationController';
-import DeviceConnector from './components/DeviceConnector';
 // Types
 import { 
-  PGNState,
   BoatState, 
   PGNDefaults, 
   Waypoint,
 } from './types';
+// Stores
+import { usePGNStore, PGNState } from './stores/pgnStore';
+
+// Components
+import Map from './components/Map';
+import PGNPanel from './components/PGNPanel';
+import SimulationController from './components/SimulationController';
+
 // Utils
-import { wirePGNsToBoatState } from './core/Simulation';
 import { initSocket } from './services/socket';
 import { loadPGNConfig } from './utils/pgn_definition_loader';
 import { getInitialPGNState, getDefaultPGNs } from './utils/pgn_defaults_loader';
 import { loadWaypoints } from './utils/waypoint_loader';
 import { PGNEmitter } from './core/PGNEmitter';
-import { getCurrentPGNValues, updatePGNState } from './utils/pgn_state';
 
 // Add this constant at the top of the file with other imports
 const SIMULATED_PGNS = ['129029', '126992', '129025', '129026', '128259'];
 
 function App() {
+  // Initialize stores
+  const {
+    pgnState,
+    replacePGNState,
+    updatePGNFields,
+  } = usePGNStore();
+
   // Create state variables
   const [isSimulating, setIsSimulating] = useState(false);
-  const [pgnState, setPGNState] = useState<PGNState>({});
   const pgnStateRef = useRef(pgnState);
   const [boatState, setBoatState] = useState<BoatState>({ lat: 44.6476, lon: -63.5728, heading: 0, speed_mps: 10 });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
@@ -45,7 +51,7 @@ function App() {
       loadWaypoints(),
       getDefaultPGNs()
     ]).then(([config, loadedWaypoints, defaults]) => {
-      setPGNState(getInitialPGNState(config));
+      replacePGNState(getInitialPGNState(config));
       setWaypoints(loadedWaypoints);
       setDefaultPGNs(defaults);
       setSelectedPGNs(Object.keys(defaults));
@@ -70,18 +76,6 @@ function App() {
       pgnStateRef.current = pgnState;
   }, [pgnState]);
 
-  const handlePGNFieldsUpdate = (system: string, fields: Record<string, number>) => {
-    console.log('PGN fields update:', system, fields);
-    wirePGNsToBoatState(setBoatState, system, fields, boatState);
-    setPGNState(prevState => updatePGNState(prevState, system, fields));
-  };
-
-  const handlePGNRateUpdate = (system: string, rate: number) => {
-    setPgnRates({ ...pgnRates, [system]: rate });
-    pgnEmitter?.updateRate(system, rate);
-    console.log('PGN rate updated:', system, rate);
-  };
-
   const handleSelectedPGNsChange = (newSelectedPGNs: string[]) => {
     setSelectedPGNs(newSelectedPGNs);
     pgnEmitter?.updateSelectedPGNs(newSelectedPGNs);
@@ -97,16 +91,11 @@ function App() {
           />
         </div>
         <PGNPanel 
-          pgnState={pgnState}
-          pgnRates={pgnRates}
           selectedPGNs={selectedPGNs}
           simulatedPGNs={SIMULATED_PGNS}
-          onPGNFieldsUpdate={handlePGNFieldsUpdate}
-          onPGNRateUpdate={handlePGNRateUpdate}
           onSelectedPGNsChange={handleSelectedPGNsChange}
           defaultPGNs={defaultPGNs}
           updateDefaultPGNs={(newDefaults: PGNDefaults) => {setDefaultPGNs(newDefaults)}}
-          getCurrentPGNValues={(pgn: string) => getCurrentPGNValues(pgn, pgnState)}
           onStart={() => {
             setIsSimulating(true);
             pgnEmitter?.start();
@@ -116,12 +105,10 @@ function App() {
             pgnEmitter?.stop();
           }}
           isSimulating={isSimulating}
-          boatState={boatState}
         />
       </div>
       <SimulationController
         isSimulating={isSimulating} 
-        onPGNFieldsUpdate={handlePGNFieldsUpdate}
         waypoints={waypoints}
         boatState={boatState}
         setBoatState={setBoatState}

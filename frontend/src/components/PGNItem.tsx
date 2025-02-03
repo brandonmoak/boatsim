@@ -1,22 +1,22 @@
 import React, { useEffect } from 'react';
 import { PGNDefinition, PGNField } from '../types';
-import { getInitialPGNState } from '../utils/pgn_defaults_loader';
+import { usePGNStore } from '../stores/pgnStore';
 
 interface PGNItemProps {
     config: PGNDefinition;
-    value: Record<string, number>;
+    pgnKey: string;
     rate?: number;
-    onValueChange: (field: string, value: number) => void;
-    onRateChange: (value: number) => void;
     isSimulated?: boolean;
 }
 
-const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, onRateChange, isSimulated }) => {
+const PGNItem: React.FC<PGNItemProps> = ({ config, pgnKey, rate, isSimulated }) => {
     // Add state to track intermediate input values
+    const { pgnState, updatePGNFields, updatePGNRate } = usePGNStore();
     const [intermediateValues, setIntermediateValues] = React.useState<Record<string, string>>({});
+    const currentValues = pgnState[pgnKey] || {};
 
     useEffect(() => {
-        if (!value || Object.keys(value).length === 0) {
+        if (!pgnState[pgnKey] || Object.keys(pgnState[pgnKey]).length === 0) {
             // Initialize with default values
             const initialValues: Record<string, number> = {};
             config.Fields.forEach(field => {
@@ -25,12 +25,10 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
             
             // Update parent with initial values
             Object.entries(initialValues).forEach(([field, value]) => {
-                onValueChange(field, Number(value));
+                updatePGNFields(pgnKey, { [field]: Number(value) });
             });
         }
-    }, [config.Fields, value, onValueChange]);
-
-    const currentValues = value || {};
+    }, [config.Fields, pgnKey]);
     
     const getFieldStep = (field: PGNField) => {
         if (field.Resolution) return field.Resolution;
@@ -62,7 +60,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
         // Parse and commit the value when focus is lost or Enter is pressed
         const parsedValue = parseFloat(parseFloat(value).toFixed(3));
         if (!isNaN(parsedValue)) {
-            onValueChange(fieldName, parsedValue);
+            updatePGNFields(pgnKey, { [fieldName]: parsedValue });
         }
         // Clear intermediate value
         setIntermediateValues(prev => ({
@@ -80,7 +78,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
     const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Parse the rate and limit to 3 decimal places
         const parsedRate = parseFloat(parseFloat(e.target.value).toFixed(3));
-        onRateChange(parsedRate);
+        updatePGNRate(pgnKey, parsedRate);
     };
 
     return (
@@ -120,7 +118,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, value, rate, onValueChange, o
                                     <div className="pgn-value-input-group">
                                         <select
                                             value={currentValues[field.Name] || ''}
-                                            onChange={(e) => onValueChange(field.Name, parseFloat(e.target.value))}
+                                            onChange={(e) => updatePGNFields(pgnKey, { [field.Name]: parseFloat(e.target.value) })}
                                         >
                                             {field.EnumValues.map((enumValue) => (
                                                 <option key={enumValue.value} value={enumValue.value}>
