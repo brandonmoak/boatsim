@@ -79,21 +79,32 @@
   font-size: 14px;
 }
 
+.device-table td:has(.device-status),
+.device-table td:has(.connect-button),
+.device-table td:has(.disconnect-button),
+.available-devices td:has(.device-status),
+.available-devices td:has(.connect-button),
+.available-devices td:has(.disconnect-button) {
+  text-align: center;
+}
+
 .device-status {
   display: inline-block;
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
+  min-width: 80px;
+  text-align: center;
 }
 
 .device-status.connected {
-  background: #4caf50;
+  background: #66bb6a;
   color: white;
 }
 
 .device-status.disconnected {
-  background: #f44336;
+  background: #ef5350;
   color: white;
 }
 
@@ -106,24 +117,25 @@
   font-size: 12px;
   transition: background-color 0.2s;
   white-space: nowrap;
+  min-width: 80px;
 }
 
 .connect-button {
-  background: #007bff;
+  background: #42a5f5;
   color: white;
 }
 
 .connect-button:hover:not(:disabled) {
-  background: #0056b3;
+  background: #2196f3;
 }
 
 .disconnect-button {
-  background: #dc3545;
+  background: #ef5350;
   color: white;
 }
 
 .disconnect-button:hover:not(:disabled) {
-  background: #c82333;
+  background: #e53935;
 }
 
 button:disabled {

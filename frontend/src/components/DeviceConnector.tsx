@@ -10,6 +10,7 @@ interface Device {
 interface DeviceConnectorProps {
   className?: string;
   onClose?: () => void;
+  onConnectionStatusChange: (hasConnections: boolean) => void;
 }
 
 // Add these new component definitions before the main DeviceConnector component
@@ -125,22 +126,22 @@ const ConnectedDevicesTable: React.FC<{
       <table>
         <thead>
           <tr>
+            <th>Status</th>
             <th>Type</th>
             <th>Device Path</th>
-            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {connectedDevices.map(([path, device]) => (
             <tr key={path}>
-              <td>{device.type}</td>
-              <td>{path}</td>
               <td>
                 <span className={`device-status ${device.status}`}>
                   {device.status}
                 </span>
               </td>
+              <td>{device.type}</td>
+              <td>{path}</td>
               <td>
                 <button
                   onClick={() => onDisconnect(path)}
@@ -171,7 +172,7 @@ const ErrorMessage: React.FC<{
 );
 
 // Update the main DeviceConnector component to use these new components
-const DeviceConnector: React.FC<DeviceConnectorProps> = ({ className, onClose }) => {
+const DeviceConnector: React.FC<DeviceConnectorProps> = ({ className, onClose, onConnectionStatusChange }) => {
   const {
     devices,
     error,
@@ -225,6 +226,12 @@ const DeviceConnector: React.FC<DeviceConnectorProps> = ({ className, onClose })
   const availableDevices = Object.entries(devices).filter(
     ([_, device]) => device.status === 'disconnected'
   );
+
+  useEffect(() => {
+    if (onConnectionStatusChange) {
+      onConnectionStatusChange(connectedDevices.length > 0);
+    }
+  }, [connectedDevices, onConnectionStatusChange]);
 
   return (
     <div className={`device-connector device-connector-dynamic ${className || ''}`}>

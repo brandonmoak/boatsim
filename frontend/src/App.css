@@ -3,7 +3,11 @@
   --primary-blue: #245185;       /* Softer blue */
   --primary-blue-hover: #357abd; /* Darker shade for hover */
   --primary-text: white;
-  
+  --primary-red: #ef5350;
+  --primary-red-hover: #e53935;
+  --primary-green: #4CAF50;
+  --primary-green-hover: #45a049;
+
   /* Button styles */
   --button-padding: 6px 12px;
   --button-height: 32px;
@@ -49,6 +53,10 @@
   background-color: var(--primary-blue-hover);
 }
 
+.red-button:hover {
+  background-color: var(--primary-red-hover);
+}
+
 /* Apply the common style to all button variants */
 .controls button,
 .blue-button,
@@ -65,6 +73,19 @@
   transition: background-color var(--transition-speed);
   height: var(--button-height);
   white-space: nowrap;
+}
+
+.green-button {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.green-button:hover {
+  background-color: var(--primary-green-hover);
+}
+
+.red-button {
+  background-color: var(--primary-red);
 }
 
 .database-button:hover,
