@@ -1,3 +1,99 @@
+:root {
+  /* Color palette */
+  --primary-blue: #245185;       /* Softer blue */
+  --primary-blue-hover: #357abd; /* Darker shade for hover */
+  --primary-text: white;
+  --primary-red: #ef5350;
+  --primary-red-hover: #e53935;
+  --primary-green: #4CAF50;
+  --primary-green-hover: #45a049;
+
+  /* Button styles */
+  --button-padding: 6px 12px;
+  --button-height: 32px;
+  --button-radius: 4px;
+  --button-font-size: 14px;
+  
+  /* Common transitions */
+  --transition-speed: 0.2s;
+  
+  /* Shadows and borders */
+  --shadow-small: 0 2px 10px rgba(0,0,0,0.1);
+  --border-color: #ddd;
+  
+  /* Background colors */
+  --bg-light: #f8f9fa;
+  --bg-white: #ffffff;
+  
+  /* Text colors */
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-muted: #999;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 20px;
+  
+  /* Panel dimensions */
+  --panel-min-height: 70px;
+  --panel-max-height: 80vh;
+  --resize-handle-height: 6px;
+  
+  /* Input styles */
+  --input-height: 38px;
+  --input-border: 1px solid var(--border-color);
+  --input-radius: 3px;
+  --input-padding: 2px 4px;
+  --input-font-size: 0.9em;
+}
+
+.blue-button:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+.red-button:hover {
+  background-color: var(--primary-red-hover);
+}
+
+/* Apply the common style to all button variants */
+.controls button,
+.blue-button,
+.database-button,
+.device-button,
+.toggle-list-button {
+  padding: var(--button-padding);
+  border-radius: var(--button-radius);
+  background-color: var(--primary-blue);
+  color: var(--primary-text);
+  border: none;
+  cursor: pointer;
+  font-size: var(--button-font-size);
+  transition: background-color var(--transition-speed);
+  height: var(--button-height);
+  white-space: nowrap;
+}
+
+.green-button {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.green-button:hover {
+  background-color: var(--primary-green-hover);
+}
+
+.red-button {
+  background-color: var(--primary-red);
+}
+
+.database-button:hover,
+.device-button:hover,
+.toggle-list-button:hover {
+  background-color: var(--primary-blue-hover);
+}
+
 /* Main layout */
 .main-container {
   display: flex;
@@ -14,18 +110,17 @@
 
 /* PGN Panel */
 .pgn-container {
-  height: 70px;  /* Initial height */
-  min-height: 70px;
-  max-height: 80vh;
+  height: var(--panel-min-height);
+  min-height: var(--panel-min-height);
+  max-height: var(--panel-max-height);
   width: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #ddd;
-  background: white;
+  border-top: var(--input-border);
+  background: var(--bg-white);
   overflow: hidden;
-  flex-shrink: 0;  /* Prevent container from shrinking */
-  /* transition: height 0.3s ease-in-out; */  /* Removed transition */
+  flex-shrink: 0;
 }
 
 .pgn-container.collapsed {
@@ -35,15 +130,15 @@
 /* Resize Handle */
 .pgn-resize-handle {
   width: 100%;
-  height: 6px;
-  background: #f0f0f0;
+  height: var(--resize-handle-height);
+  background: var(--bg-light);
   cursor: ns-resize;
   position: absolute;
   top: 0;
   left: 0;
   z-index: 10;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  border-top: var(--input-border);
+  border-bottom: var(--input-border);
 }
 
 .pgn-resize-handle:hover {
@@ -64,38 +159,31 @@
 
 /* Ensure panel content stays below resize handle */
 .pgn-panel {
-  margin-top: 6px;
-  height: calc(100% - 6px);  /* Take remaining space */
+  margin-top: var(--resize-handle-height);
+  height: calc(100% - var(--resize-handle-height));
   display: flex;
   flex-direction: column;
-  overflow: hidden;  /* Hide overflow */
-  flex: 1;  /* Take up remaining space */
-}
-
-.pgn-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* Ensure full height */
-  width: 100%;
-  background: #f8f9fa;  /* Changed from white to light gray */
-  padding: 5px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  overflow: hidden;
+  flex: 1;
+  background: var(--bg-light);
+  padding: var(--spacing-xs);
+  border-radius: var(--button-radius);
+  box-shadow: var(--shadow-small);
+  border: var(--input-border);
   overflow-y: auto;
-  border: 1px solid #ddd;
   margin: 0;
 }
 
 .pgn-panel-header {
   flex-shrink: 0;
-  padding: 6px;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  background: #f8f9fa;
+  padding: var(--spacing-xs);
+  border-top: var(--input-border);
+  border-bottom: var(--input-border);
+  background: var(--bg-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .pgn-header-left {
@@ -478,23 +566,6 @@
   font-weight: 500;
 }
 
-.database-button {
-  padding: 6px 12px;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-  height: 32px;
-  white-space: nowrap;
-}
-
-.database-button:hover {
-  background-color: #0056b3;
-}
-
 .pgn-selector {
   flex: 1;
   min-width: 10px;
@@ -588,25 +659,6 @@
     min-width: 150px;
 }
 
-.toggle-list-button {
-    padding: 6px 12px;
-    border-radius: 4px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
-    height: 32px;
-    white-space: nowrap;
-}
-
-.toggle-list-button:hover {
-    background-color: #0056b3;
-}
-
-/* No need for special collapsed state styling since it'll always match the database button */
-
 .controls {
   display: flex;
   gap: 10px;
@@ -616,25 +668,6 @@
   border-radius: 8px;
   position: relative;
   pointer-events: auto;  /* Ensure clicks are captured */
-}
-
-.controls button {
-  padding: 6px 12px;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-  height: 32px;
-  white-space: nowrap;
-  position: relative;
-  pointer-events: auto;
-}
-
-.controls button:hover {
-  background-color: #0056b3;
 }
 
 .controls button:disabled {
@@ -648,26 +681,6 @@
   display: flex;
   gap: 15px;
   align-items: center;
-}
-
-/* Add styles for the database and toggle buttons */
-.database-button,
-.toggle-list-button {
-  padding: 6px 12px;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-  height: 32px;
-  white-space: nowrap;
-}
-
-.database-button:hover,
-.toggle-list-button:hover {
-  background-color: #0056b3;
 }
 
 /* Add styles for the floating navigation container */

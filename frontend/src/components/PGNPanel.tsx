@@ -3,13 +3,11 @@ import Select from 'react-select';
 import PGNItem from './PGNItem';
 import { PGNDefinition } from '../types';
 import { loadPGNConfig } from '../utils/pgn_definition_loader';
-import { getDefaultPGNArray } from '../utils/pgn_defaults_loader';
 import { 
   PGNPanelProps 
 } from '../types';
 import PGNDatabase from './PGNDatabase';
-import Controls from './Controls';
-import NavigationDisplay from './NavigationDisplay';
+import DeviceConnector from './DeviceConnector';
 
 interface PGNOption {
     value: string;
@@ -35,10 +33,12 @@ const PGNPanel = React.memo(({
     
     const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
     const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
+    const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [isListVisible, setIsListVisible] = useState(true);
+    const [isListVisible, setIsListVisible] = useState(false);
     const draggingRef = useRef(false);
-    const [containerHeight, setContainerHeight] = useState('400px');
+    const [containerHeight, setContainerHeight] = useState('0px');
+    const [hasConnectedDevices, setHasConnectedDevices] = useState(false);
 
     useEffect(() => {
         console.log('Loading PGN definitions...');
@@ -86,13 +86,14 @@ const PGNPanel = React.memo(({
         label: `${key} - ${defs?.Description || 'Unknown'}`
     }));
 
-    // Add debug logging
-    console.log('Rendering PGNPanel with:', {
-        selectedPGNs,
-        pgnState,
-        pgnRates,
-        definitionsLoaded: Object.keys(pgnDefinitions).length > 0
-    });
+    useEffect(() => {
+        if (!isDragging) {
+            setTimeout(() => {
+                // @ts-ignore - Global function
+                window.refreshMap?.();
+            }, 0);
+        }
+    }, [isDragging]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -133,6 +134,10 @@ const PGNPanel = React.memo(({
         }, 0);
     };
 
+    const handleConnectionStatusChange = (hasConnections: boolean) => {
+        setHasConnectedDevices(hasConnections);
+    };
+
     return (
         <div 
             className={`pgn-container ${!isListVisible ? 'collapsed' : ''}`}
@@ -142,11 +147,18 @@ const PGNPanel = React.memo(({
             <div className="pgn-panel">  
                 <div className="pgn-panel-header">
                     <div className="pgn-header-left">
-                        <Controls 
-                            onStart={onStart}
-                            onStop={onStop}
-                            isRunning={isSimulating}
-                        />
+                        <button
+                            className={`blue-button ${isSimulating ? 'red-button' : ''}`}
+                            onClick={isSimulating ? onStop : onStart}
+                        >
+                            {isSimulating ? 'Stop Simulation' : 'Start Simulation'}
+                        </button>
+                        <button
+                            className="blue-button toggle-list-button"
+                            onClick={handleVisibilityToggle}
+                        >
+                            {isListVisible ? 'Hide Simulated PGNs' : 'Show Simulated PGNs'}
+                        </button>
                     </div>
                     <div className="pgn-header-center">
                         {isListVisible && (
@@ -170,11 +182,11 @@ const PGNPanel = React.memo(({
                         >
                             View PGN Database
                         </button>
-                        <button
-                            className="toggle-list-button blue-button"
-                            onClick={handleVisibilityToggle}
+                        <button 
+                            className={`device-button ${hasConnectedDevices ? 'green-button' : 'blue-button'}`}
+                            onClick={() => setIsDeviceMenuOpen(!isDeviceMenuOpen)}
                         >
-                            {isListVisible ? 'Hide PGNs' : 'Show PGNs'}
+                            Configure Devices
                         </button>
                     </div>
                 </div>
@@ -227,6 +239,13 @@ const PGNPanel = React.memo(({
                     selectedPGNs={selectedPGNs}
                     onAddToSimulation={handleAddToSimulation}
                     getCurrentPGNValues={getCurrentPGNValues}
+                />
+            )}
+            {isDeviceMenuOpen && (
+                <DeviceConnector 
+                    className="device-menu-overlay" 
+                    onClose={() => setIsDeviceMenuOpen(false)}
+                    onConnectionStatusChange={handleConnectionStatusChange}
                 />
             )}
         </div>

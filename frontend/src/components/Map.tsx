@@ -10,9 +10,25 @@ import NavigationDisplay from './NavigationDisplay';
 interface MapProps {
   boatState: BoatState;
   waypoints: Waypoint[];
-  onStart: () => void;
-  onStop: () => void;
-  isSimulating: boolean;
+}
+
+// Update the interface definition
+declare module 'leaflet' {
+  interface MapOptions {
+    rotate?: boolean;
+    rotateControl?: boolean | {
+      closeOnZeroBearing: boolean;
+      position: string;
+      buttonOptions?: {
+        states: { stateName: string; icon: string; title: string }[];
+      };
+    };
+  }
+
+  interface Map {
+    setBearing(bearing: number): void;
+    getBearing(): number;
+  }
 }
 
 // Update the interface definition
@@ -41,9 +57,6 @@ interface RotationControlType extends L.Control {
 const Map: React.FC<MapProps> = ({ 
   boatState, 
   waypoints,
-  onStart,
-  onStop,
-  isSimulating
 }) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);

@@ -1,0 +1,400 @@
+.device-connector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  border: 1px solid #ddd;
+  min-width: 400px;
+}
+
+.device-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.device-table-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.add-device-button {
+  padding: var(--button-padding);
+  border-radius: var(--button-radius);
+  background-color: var(--primary-blue);
+  color: var(--primary-text);
+  border: none;
+  cursor: pointer;
+  font-size: var(--button-font-size);
+  transition: background-color var(--transition-speed);
+  height: var(--button-height);
+  white-space: nowrap;
+  min-width: var(--button-height);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.add-device-button:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+.device-table {
+  width: 100%;
+}
+
+.device-table table,
+.available-devices table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.device-table th,
+.device-table td,
+.available-devices th,
+.available-devices td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.device-table th,
+.available-devices th {
+  background: #f8f9fa;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.device-table td:has(.device-status),
+.device-table td:has(.connect-button),
+.device-table td:has(.disconnect-button),
+.available-devices td:has(.device-status),
+.available-devices td:has(.connect-button),
+.available-devices td:has(.disconnect-button) {
+  text-align: center;
+}
+
+.device-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 80px;
+  text-align: center;
+}
+
+.device-status.connected {
+  background: #66bb6a;
+  color: white;
+}
+
+.device-status.disconnected {
+  background: #ef5350;
+  color: white;
+}
+
+.connect-button,
+.disconnect-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.connect-button {
+  background: #42a5f5;
+  color: white;
+}
+
+.connect-button:hover:not(:disabled) {
+  background: #2196f3;
+}
+
+.disconnect-button {
+  background: #ef5350;
+  color: white;
+}
+
+.disconnect-button:hover:not(:disabled) {
+  background: #e53935;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 14px;
+  padding: 4px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fde8e8;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  max-width: 400px;
+  overflow-wrap: break-word;
+}
+
+.error-message .close-button {
+  padding: 0 4px;
+  font-size: 18px;
+  color: #dc3545;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.error-message .close-button:hover {
+  color: #bd2130;
+}
+
+.no-devices {
+  padding: 12px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.available-devices {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.available-devices h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.connected {
+  background-color: #4CAF50;
+}
+
+.status-dot.disconnected {
+  background-color: #f44336;
+}
+
+.device-selector {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.device-selector-toggle {
+  width: 100%;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.device-selector-toggle:hover {
+  border-color: #0066cc;
+}
+
+.device-selector-toggle:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.device-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.device-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.device-menu-item:hover {
+  background: #f8f9fa;
+}
+
+.device-menu-item.selected {
+  background: #e8f0fe;
+  color: #0066cc;
+}
+
+/* Custom scrollbar for device menu */
+.device-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.device-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+  margin: 4px 0;
+}
+
+.device-menu::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.device-menu::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+.device-menu-overlay {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+  padding: 15px;
+}
+
+.device-button {
+  margin: 0 5px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 5px;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #000;
+}
+
+.device-connector-dynamic {
+  height: auto;
+  min-height: min-content;
+  max-height: max-content;
+}
+
+.device-table-dynamic {
+  height: auto;
+  min-height: min-content;
+}
+
+.available-devices-dynamic {
+  height: auto;
+  min-height: min-content;
+}
+
+.tcp-form {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 8px;
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  max-width: 100%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #999;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.cancel-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+  background: #f0f0f0;
+} 

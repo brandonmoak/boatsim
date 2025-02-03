@@ -14,7 +14,7 @@ export function configureServer(httpServer, frontendPort) {
   // Configure Socket.IO
   const io = new Server(httpServer, {
     cors: {
-      origin: `http://localhost:${frontendPort}`,
+      origin: "*",
       methods: ["GET", "POST"]
     },
     // Disable all buffering/batching
@@ -25,7 +25,6 @@ export function configureServer(httpServer, frontendPort) {
     pingTimeout: 20000,
     pingInterval: 25000,
     upgradeTimeout: 10000,
-    allowUpgrades: false, // Stick to websocket only
     serveClient: false,
     allowEIO3: true,
     connectTimeout: 5000

@@ -20,7 +20,7 @@ class PgnStatsManager {
         this.pgnLastMessageTimes = {};
     }
 
-    updateStats(pgn, additionalInfo = {}) {
+    updateStats(pgn) {
         const now = Date.now();
         
         // Initialize stats if needed

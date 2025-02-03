@@ -3,7 +3,7 @@ import fs from 'fs';
 
 // Create storage directory if it doesn't exist
 const currentDir = path.dirname(new URL(import.meta.url).pathname);
-const STORAGE_DIR = path.join(currentDir, '../../frontend/src/config');
+const STORAGE_DIR = path.join(currentDir, '../../../frontend/src/config');
 if (!fs.existsSync(STORAGE_DIR)) {
   fs.mkdirSync(STORAGE_DIR);
 }
