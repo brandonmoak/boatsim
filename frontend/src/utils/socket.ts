@@ -5,9 +5,8 @@ let socket: Socket | null = null;
 
 export const initSocket = (): Socket => {
     if (!socket) {
-        const backendPort = process.env.REACT_APP_BACKEND_PORT;
         const backendUrl = process.env.REACT_APP_BACKEND_URL;
-        const url = `http://${backendUrl}:${backendPort}`;
+        const url = `https://${backendUrl}`;
         console.log(url);
         socket = io(url, {
             transports: ['websocket'],
