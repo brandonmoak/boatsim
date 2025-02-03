@@ -55,8 +55,9 @@ class MessageForwarder extends EventEmitter {
 
     async getEachDeviceStatus() {
         const status = {};
+        let all_devices = [];
         try {
-            const all_devices = await listSerialDevices();
+            all_devices = await listSerialDevices();
         } catch (error) {
             this.io.emit('device_error', error.message);
             return status;
