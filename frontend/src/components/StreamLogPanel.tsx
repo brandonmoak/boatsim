@@ -71,6 +71,33 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
 //     };
 //   }, [toggleStreamLog]);
 
+  // Helper function to parse and format log entry
+  const renderLogEntry = (log: string) => {
+    // Match the timestamp, PGN ID, name, and data
+    const match = log.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (\d+) ([a-zA-Z]+) (.+)$/);
+    
+    if (!match) return <span>{log}</span>;
+
+    const [_, timestamp, pgnId, name, data] = match;
+
+    // Format the data section by coloring keys and values differently
+    const formattedData = data.replace(/([^:]+):([^|{}]+)(?:\||{|}|$)/g, (_, key, value) => {
+      return (
+        `<span style="color: #d63384">${key.trim()}</span>:` +
+        `<span style="color: #000000">${value.trim()}</span>${value.endsWith('}') ? '' : ' | '}`
+      );
+    });
+
+    return (
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <span style={{ color: '#888' }}>{timestamp}</span>
+        <span style={{ color: '#007bff' }}>{pgnId}</span>
+        <span style={{ color: '#28a745' }}>{name}</span>
+        <span dangerouslySetInnerHTML={{ __html: formattedData }} />
+      </div>
+    );
+  };
+
   return (
     <div
       ref={panelRef}
@@ -139,8 +166,8 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
         }}
       >
         {displayedLogs.map((log, index) => (
-          <div key={index} style={{ marginBottom: '4px' }}>
-            {log}
+          <div key={index} style={{ marginBottom: '4px', whiteSpace: 'pre-wrap' }}>
+            {renderLogEntry(log)}
           </div>
         ))}
       </div>
