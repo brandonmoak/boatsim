@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { PGNEmitter } from '../core/PGNEmitter';
 import { usePGNStore } from '../stores/pgnStore';
 import { useEmitterStore } from '../stores/emitterStore';
+import StreamLogPanel from './StreamLogPanel';
 
 interface EmitterControllerProps {
 }
@@ -10,7 +11,7 @@ const EmitterController: React.FC<EmitterControllerProps> = ({
 }) => {
   const [pgnEmitter, setPgnEmitter] = useState<PGNEmitter | null>(null);
   const { pgnRates, fetchPGNDefinitions, fetchPGNState } = usePGNStore();
-  const { PGNsToStream, isEmitting } = useEmitterStore();
+  const { PGNsToStream, isEmitting, showStreamLog } = useEmitterStore();
 
   // Initialize PGNEmitter
   useEffect(() => {
@@ -51,7 +52,11 @@ const EmitterController: React.FC<EmitterControllerProps> = ({
     }
   }, [isEmitting, pgnEmitter]);
 
-  return null;
+  return (
+    <>
+      {showStreamLog && <StreamLogPanel />}
+    </>
+  );
 };
 
 export default EmitterController; 

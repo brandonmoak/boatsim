@@ -14,6 +14,8 @@ import Map from './components/Map';
 import PGNPanel from './components/PGNPanel';
 import SimulationController from './components/SimulationController';
 import EmitterController from './components/EmitterController';
+import PGNDatabase from './components/PGNDatabase';
+import DeviceConnector from './components/DeviceConnector';
 
 // Utils
 import { initSocket } from './services/socket';
@@ -27,13 +29,16 @@ const SIMULATED_PGNS = ['129029', '126992', '129025', '129026', '128259'];
 function App() {
   // Initialize stores
   const { initializePGNStore } = usePGNStore();
-  const { setPGNsToStream, setIsEmitting, streamLog } = useEmitterStore();
+  const { setPGNsToStream, setIsEmitting, streamLog, toggleStreamLog } = useEmitterStore();
 
   // Create state variables
   const [isSimulating, setIsSimulating] = useState(false);
   const [boatState, setBoatState] = useState<BoatState>({ lat: 44.6476, lon: -63.5728, heading: 0, speed_mps: 10 });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
+  const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
+  const [hasConnectedDevices, setHasConnectedDevices] = useState(false);
 
   useEffect(() => {
     initSocket();
@@ -62,6 +67,16 @@ function App() {
     console.log('Stream Log:', streamLog);
   }, [streamLog]);
 
+  const handleConnectionStatusChange = (hasConnections: boolean) => {
+    setHasConnectedDevices(hasConnections);
+  };
+
+  const handleAddToSimulation = (pgn: string) => {
+    if (!selectedPGNs.includes(pgn)) {
+      setSelectedPGNs([...selectedPGNs, pgn]);
+    }
+  };
+
   return (
     <div className="App">
       <div className="main-container">
@@ -78,16 +93,35 @@ function App() {
           onStart={() => {setIsSimulating(true); setIsEmitting(true);}}
           onStop={() => {setIsSimulating(false); setIsEmitting(false);}}
           isSimulating={isSimulating}
+          onOpenDatabase={() => setIsDatabaseViewerOpen(true)}
+          onToggleDeviceMenu={() => setIsDeviceMenuOpen(!isDeviceMenuOpen)}
+          onToggleEmitLogs={toggleStreamLog}
+          hasConnectedDevices={hasConnectedDevices}
         />
       </div>
+      {isDatabaseViewerOpen && (
+        <PGNDatabase
+          isOpen={isDatabaseViewerOpen}
+          onClose={() => setIsDatabaseViewerOpen(false)}
+          pgnDefinitions={usePGNStore.getState().pgnDefinitions}
+          selectedPGNs={selectedPGNs}
+          onAddToSimulation={handleAddToSimulation}
+        />
+      )}
+      {isDeviceMenuOpen && (
+        <DeviceConnector 
+          className="device-menu-overlay" 
+          onClose={() => setIsDeviceMenuOpen(false)}
+          onConnectionStatusChange={handleConnectionStatusChange}
+        />
+      )}
       <SimulationController
         isSimulating={isSimulating} 
         waypoints={waypoints}
         boatState={boatState}
         setBoatState={setBoatState}
       />
-      <EmitterController
-      />
+      <EmitterController />
     </div>
   );
 }

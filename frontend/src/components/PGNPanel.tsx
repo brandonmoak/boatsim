@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Select from 'react-select';
 import PGNItem from './PGNItem';
 import PGNDatabase from './PGNDatabase';
-import DeviceConnector from './DeviceConnector';
 import { usePGNStore } from '../stores/pgnStore';
 
 interface PGNOption {
@@ -18,6 +17,10 @@ export interface PGNPanelProps {
   onStart: () => void;
   onStop: () => void;
   isSimulating: boolean;
+  onOpenDatabase: () => void;
+  onToggleDeviceMenu: () => void;
+  onToggleEmitLogs: () => void;
+  hasConnectedDevices: boolean;
 }
 
 const PGNPanel = React.memo(({ 
@@ -27,16 +30,18 @@ const PGNPanel = React.memo(({
   onStop,
   isSimulating,
   simulatedPGNs,
+  onOpenDatabase,
+  onToggleDeviceMenu,
+  onToggleEmitLogs,
+  hasConnectedDevices,
 }: PGNPanelProps) => {
 
     const { pgnRates, pgnDefinitions } = usePGNStore();
     const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
-    const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isListVisible, setIsListVisible] = useState(false);
     const draggingRef = useRef(false);
     const [containerHeight, setContainerHeight] = useState('0px');
-    const [hasConnectedDevices, setHasConnectedDevices] = useState(false);
 
     useEffect(() => {
         // Set initial height when component mounts
@@ -55,12 +60,6 @@ const PGNPanel = React.memo(({
 
     const handleRemovePGN = (pgnKey: string) => {
         onSelectedPGNsChange(selectedPGNs.filter(key => key !== pgnKey));
-    };
-
-    const handleAddToSimulation = (pgn: string) => {
-        if (!selectedPGNs.includes(pgn)) {
-            onSelectedPGNsChange([...selectedPGNs, pgn]);
-        }
     };
 
     const pgnOptions: PGNOption[] = Object.entries(pgnDefinitions).map(([key, defs]) => ({
@@ -116,10 +115,6 @@ const PGNPanel = React.memo(({
         }, 0);
     };
 
-    const handleConnectionStatusChange = (hasConnections: boolean) => {
-        setHasConnectedDevices(hasConnections);
-    };
-
     return (
         <div 
             className={`pgn-container ${!isListVisible ? 'collapsed' : ''}`}
@@ -160,15 +155,21 @@ const PGNPanel = React.memo(({
                     <div className="pgn-header-right">
                         <button 
                             className="database-button blue-button"
-                            onClick={() => setIsDatabaseViewerOpen(true)}
+                            onClick={onOpenDatabase}
                         >
                             View PGN Database
                         </button>
                         <button 
                             className={`device-button ${hasConnectedDevices ? 'green-button' : 'blue-button'}`}
-                            onClick={() => setIsDeviceMenuOpen(!isDeviceMenuOpen)}
+                            onClick={onToggleDeviceMenu}
                         >
                             Configure Devices
+                        </button>
+                        <button 
+                            className="blue-button"
+                            onClick={onToggleEmitLogs}
+                        >
+                            Emit Logs
                         </button>
                     </div>
                 </div>
@@ -209,22 +210,6 @@ const PGNPanel = React.memo(({
                     </div>
                 )}
             </div>
-            {isDatabaseViewerOpen && (
-                <PGNDatabase
-                    isOpen={isDatabaseViewerOpen}
-                    onClose={() => setIsDatabaseViewerOpen(false)}
-                    pgnDefinitions={pgnDefinitions}
-                    selectedPGNs={selectedPGNs}
-                    onAddToSimulation={handleAddToSimulation}
-                />
-            )}
-            {isDeviceMenuOpen && (
-                <DeviceConnector 
-                    className="device-menu-overlay" 
-                    onClose={() => setIsDeviceMenuOpen(false)}
-                    onConnectionStatusChange={handleConnectionStatusChange}
-                />
-            )}
         </div>
     );
 }, (prevProps, nextProps) => {
@@ -232,7 +217,8 @@ const PGNPanel = React.memo(({
         JSON.stringify(prevProps.selectedPGNs) === JSON.stringify(nextProps.selectedPGNs) &&
         prevProps.isSimulating === nextProps.isSimulating &&
         prevProps.onStart === nextProps.onStart &&
-        prevProps.onStop === nextProps.onStop
+        prevProps.onStop === nextProps.onStop &&
+        prevProps.hasConnectedDevices === nextProps.hasConnectedDevices
     );
 });
 
