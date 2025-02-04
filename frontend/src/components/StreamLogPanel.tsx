@@ -1,9 +1,72 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { useEmitterStore } from '../stores/emitterStore';
+import { VariableSizeList } from 'react-window';
 
 interface StreamLogPanelProps {
   initialWidth?: number;
 }
+
+interface LogEntryProps {
+  log: string;
+  style: React.CSSProperties;
+}
+
+// Move renderLogEntry outside of the main component
+const renderLogEntry = (log: string) => {
+  const match = log.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (\d+) ([a-zA-Z]+) (.+)$/);
+  
+  if (!match) return <span style={{ fontSize: '12px' }}>{log}</span>;
+
+  const [_, timestamp, pgnId, name, data] = match;
+
+  const innerData = data.slice(1, -1);
+  const pairs = innerData.split('|');
+
+  const formattedPairs = pairs.map((pair, index, array) => {
+    const [key, value] = pair.split(':').map(s => s.trim());
+    const cleanValue = value.replace(/}$/, '');
+    
+    return (
+      `<span style="color: #d63384; font-weight: 500; display: inline-block; min-width: 0px">${key}</span>:` +
+      `<span style="color: black; margin-left: 1px">${cleanValue}</span>` +
+      (index === array.length - 1 ? '' : ' | ')
+    );
+  }).join('');
+
+  const formattedData = '{ ' + formattedPairs + ' }';
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      gap: '0px', 
+      fontSize: '12px',
+      alignItems: 'flex-start',
+      flexWrap: 'wrap',
+      padding: '2px',
+      minHeight: '16'
+    }}>
+      <span style={{ color: '#888', width: '160px', flexShrink: 0 }}>{timestamp}</span>
+      <span style={{ color: '#007bff', width: '60px', flexShrink: 0 }}>{pgnId}</span>
+      <span style={{ color: '#28a745', width: '180px', flexShrink: 0 }}>{name}</span>
+      <span 
+        dangerouslySetInnerHTML={{ __html: formattedData }} 
+        style={{ 
+          flex: 1,
+          minWidth: '200px',
+          wordBreak: 'break-word'
+        }} 
+      />
+    </div>
+  );
+};
+
+const LogEntry = memo(({ log, style }: LogEntryProps) => {
+  return (
+    <div style={{ ...style, whiteSpace: 'pre-wrap' }}>
+      {renderLogEntry(log)}
+    </div>
+  );
+});
 
 const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) => {
   const { streamLog, toggleStreamLog } = useEmitterStore();
@@ -11,89 +74,50 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
   const [panelHeight, setPanelHeight] = useState(400);
   const [panelWidth, setPanelWidth] = useState(initialWidth);
   const [isLive, setIsLive] = useState(true);
-  const [displayedLogs, setDisplayedLogs] = useState<string[]>([]);
   const logContainerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  
+  const listRef = useRef<VariableSizeList>(null);
+  const sizeMap = useRef<{[key: number]: number}>({});
+
   // Filter logs based on input
   const filteredLogs = streamLog.filter(log => 
     log.toLowerCase().includes(filterText.toLowerCase())
   );
 
-  // Update displayed logs only when in live mode
+  // Update scroll position when new logs arrive
   useEffect(() => {
-    if (isLive) {
-      setDisplayedLogs(filteredLogs);
+    if (isLive && listRef.current && filteredLogs.length > 0) {
+      requestAnimationFrame(() => {
+        listRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
+      });
     }
-  }, [filteredLogs, isLive]);
+  }, [filteredLogs.length, isLive]);
 
-  // Check if scrolled away from bottom
-  const handleScroll = () => {
-    if (logContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = logContainerRef.current;
-      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 10;
-      if (isAtBottom && !isLive) {
-        setIsLive(true);
-        setDisplayedLogs(filteredLogs);
-      } else if (!isAtBottom && isLive) {
-        setIsLive(false);
-        setDisplayedLogs(filteredLogs);
+  // Add function to get item size
+  const getItemSize = (index: number) => {
+    return sizeMap.current[index] || 60; // Default to 60px if not measured yet
+  };
+
+  // Add function to set item size
+  const setItemSize = (index: number, size: number) => {
+    sizeMap.current[index] = size;
+    listRef.current?.resetAfterIndex(index);
+  };
+
+  // Update Row component to measure content
+  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+    const rowRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if (rowRef.current) {
+        const height = rowRef.current.getBoundingClientRect().height;
+        setItemSize(index, height);
       }
-    }
-  };
-
-  // Auto scroll to bottom when new logs arrive if in live mode
-  useEffect(() => {
-    if (logContainerRef.current && isLive) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, [displayedLogs, isLive]);
-
-  const scrollToBottom = () => {
-    if (logContainerRef.current) {
-      setDisplayedLogs(filteredLogs);
-      setIsLive(true);
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  };
-
-  // Handle clicks outside the panel
-//   useEffect(() => {
-//     const handleClickOutside = (event: MouseEvent) => {
-//       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-//         toggleStreamLog();
-//       }
-//     };
-
-//     document.addEventListener('mousedown', handleClickOutside);
-//     return () => {
-//       document.removeEventListener('mousedown', handleClickOutside);
-//     };
-//   }, [toggleStreamLog]);
-
-  // Helper function to parse and format log entry
-  const renderLogEntry = (log: string) => {
-    // Match the timestamp, PGN ID, name, and data
-    const match = log.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (\d+) ([a-zA-Z]+) (.+)$/);
-    
-    if (!match) return <span>{log}</span>;
-
-    const [_, timestamp, pgnId, name, data] = match;
-
-    // Format the data section by coloring keys and values differently
-    const formattedData = data.replace(/([^:]+):([^|{}]+)(?:\||{|}|$)/g, (_, key, value) => {
-      return (
-        `<span style="color: #d63384">${key.trim()}</span>:` +
-        `<span style="color: #000000">${value.trim()}</span>${value.endsWith('}') ? '' : ' | '}`
-      );
-    });
+    }, [filteredLogs[index]]);
 
     return (
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <span style={{ color: '#888', width: '170px', flexShrink: 0 }}>{timestamp}</span>
-        <span style={{ color: '#007bff', width: '45px', flexShrink: 0 }}>{pgnId}</span>
-        <span style={{ color: '#28a745', width: '200px', flexShrink: 0 }}>{name}</span>
-        <span dangerouslySetInnerHTML={{ __html: formattedData }} style={{ flex: 1 }} />
+      <div ref={rowRef} style={{ ...style, height: 'auto' }}>
+        <LogEntry log={filteredLogs[index]} style={{}} />
       </div>
     );
   };
@@ -116,7 +140,7 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
         zIndex: 1000,
       }}
     >
-      {/* Header with filter and close button */}
+      {/* Header with filter, live toggle, and close button */}
       <div style={{ 
         padding: '8px', 
         borderBottom: '1px solid #ccc',
@@ -135,9 +159,25 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
             fontSize: '14px',
             border: '1px solid #ccc',
             borderRadius: '4px',
-            boxSizing: 'border-box',
           }}
         />
+        <div
+          onClick={() => setIsLive(!isLive)}
+          style={{
+            cursor: 'pointer',
+            padding: '4px 8px',
+            fontSize: '12px',
+            userSelect: 'none',
+            backgroundColor: isLive ? 'var(--primary-blue)' : '#666',
+            color: 'white',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          {isLive ? '⚡ Live' : '⏸️ Paused'}
+        </div>
         <div
           onClick={toggleStreamLog}
           style={{
@@ -152,47 +192,18 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
         </div>
       </div>
 
-      {/* Logs container */}
-      <div
-        ref={logContainerRef}
-        onScroll={handleScroll}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '8px',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          position: 'relative',  // For positioning the live button
-        }}
-      >
-        {displayedLogs.map((log, index) => (
-          <div key={index} style={{ marginBottom: '4px', whiteSpace: 'pre-wrap' }}>
-            {renderLogEntry(log)}
-          </div>
-        ))}
-      </div>
-
-      {/* Live button - only shown when not at bottom */}
-      {!isLive && (
-        <div
-          onClick={scrollToBottom}
-          style={{
-            position: 'absolute',
-            right: '20px',
-            bottom: '15px',
-            backgroundColor: 'var(--primary-blue)',
-            color: 'white',
-            padding: '4px 12px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            cursor: 'pointer',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-            userSelect: 'none',
-          }}
+      {/* Log list container */}
+      <div style={{ flex: 1 }}>
+        <VariableSizeList
+          ref={listRef}
+          height={panelHeight - 45}
+          width={panelWidth - 2}
+          itemCount={filteredLogs.length}
+          itemSize={getItemSize}
         >
-          Go Live
-        </div>
-      )}
+          {Row}
+        </VariableSizeList>
+      </div>
 
       {/* Resize handles */}
       <div

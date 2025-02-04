@@ -14,6 +14,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, pgnKey, rate, isSimulated }) 
     const { pgnState, updatePGNFields, updatePGNRate } = usePGNStore();
     const { PGNsToStream, addPGNToStream, removePGNFromStream } = useEmitterStore();
     const [intermediateValues, setIntermediateValues] = React.useState<Record<string, string>>({});
+    const [isExpanded, setIsExpanded] = React.useState(false);
     const currentValues = pgnState[pgnKey] || {};
 
     useEffect(() => {
@@ -90,86 +91,114 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, pgnKey, rate, isSimulated }) 
         }
     };
 
+    // Add this helper function to format the field summary
+    const getFieldsSummary = () => {
+        return config.Fields
+            .filter(field => !field.Name.startsWith('Reserved'))
+            .map(field => {
+                const value = currentValues[field.Name];
+                if (value === undefined) return '';
+                const formattedValue = field.FieldType === 'LOOKUP' && field.EnumValues
+                    ? field.EnumValues.find(e => e.value === value)?.name
+                    : value.toFixed(2);
+                return `${field.Name}: ${formattedValue}${field.Unit ? ' ' + field.Unit : ''}`;
+            })
+            .filter(Boolean)
+            .join(', ');
+    };
+
     return (
-        <div className={`pgn-item ${isSimulated ? 'simulated' : ''}`}>
-            <input
-                type="checkbox"
-                className="pgn-stream-radio"
-                checked={PGNsToStream.includes(pgnKey)}
-                onChange={handleStreamToggle}
-                aria-label={`Toggle streaming for PGN ${config.PGN}`}
-            />
-            <div className="pgn-item-fixed">
+        <div className={`pgn-item ${isSimulated ? 'simulated' : ''} ${isExpanded ? 'expanded' : ''}`}>
+            <div 
+                className="pgn-item-header"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <input
+                    type="checkbox"
+                    className="pgn-stream-radio"
+                    checked={PGNsToStream.includes(pgnKey)}
+                    onChange={handleStreamToggle}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`Toggle streaming for PGN ${config.PGN}`}
+                />
                 <div className="pgn-fixed-content">
-                    <span className={`pgn-number ${isSimulated ? 'simulated' : ''}`}>PGN {config.PGN}</span>
+                    <span className="pgn-number">PGN {config.PGN}</span>
                     <div className="pgn-value">
-                        <div className="pgn-value-input-group">
-                            <input
-                                type="number"
-                                value={rate.toFixed(3)}
-                                onChange={handleRateChange}
-                                min={0}
-                                max={100}
-                                step={0.1}
-                            />
-                            <span className="pgn-value-unit">Hz</span>
+                        <div className="pgn-value-box" style={{borderWidth: '0px'}}>
+                            <div className="pgn-value-label"></div>
+                            <div 
+                                className="pgn-value-input-wrapper"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <input
+                                    type="number"
+                                    value={rate.toFixed(2) || 0}
+                                    onChange={handleRateChange}
+                                    className="pgn-value-input"
+                                />
+                                <span className="pgn-value-unit">Hz</span>
+                            </div>
                         </div>
                     </div>
                     <div className="pgn-description">
-                        {config.Description}
+                        <span className="description-text">{config.Description}</span>
+                        {!isExpanded && (
+                            <span className="pgn-fields-summary" title={getFieldsSummary()}>
+                                &nbsp;—&nbsp;{getFieldsSummary()}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
-            <div className="pgn-item-scrollable">
-                <div className="pgn-values-container">
-                    {config.Fields.map((field) => {
-                        if (field.Name.startsWith('Reserved')) return null;
+            <div className="pgn-values-container">
+                {config.Fields.map((field) => {
+                    if (field.Name.startsWith('Reserved')) return null;
 
-                        if (field.FieldType === 'LOOKUP' && field.EnumValues) {
-                            return (
-                                <div key={field.Name} className="pgn-value">
-                                    <div className="pgn-value-label">
-                                        {field.Description || field.Name}
-                                    </div>
-                                    <div className="pgn-value-input-group">
-                                        <select
-                                            value={currentValues[field.Name] || ''}
-                                            onChange={(e) => updatePGNFields(pgnKey, { [field.Name]: parseFloat(e.target.value) })}
-                                        >
-                                            {field.EnumValues.map((enumValue) => (
-                                                <option key={enumValue.value} value={enumValue.value}>
-                                                    {enumValue.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {field.Unit && <span className="pgn-value-unit">{field.Unit}</span>}
-                                    </div>
-                                </div>
-                            );
-                        }
-
+                    if (field.FieldType === 'LOOKUP' && field.EnumValues) {
                         return (
-                            <div key={field.Name} className="pgn-value">
+                            <div key={field.Name} className="pgn-value-box">
                                 <div className="pgn-value-label">
                                     {field.Description || field.Name}
                                 </div>
                                 <div className="pgn-value-input-group">
-                                    <input
-                                        type="number"
-                                        value={intermediateValues[field.Name] || currentValues[field.Name]?.toFixed(2) || '0.00'}
-                                        onChange={(e) => handleValueChange(field.Name, e.target.value)}
-                                        onBlur={(e) => handleValueCommit(field.Name, e.target.value)}
-                                        onKeyDown={(e) => handleKeyDown(e, field.Name, e.currentTarget.value)}
-                                        min={getFieldMin(field)}
-                                        max={getFieldMax(field)}
-                                        step={getFieldStep(field)}
-                                    />
+                                    <select
+                                        value={currentValues[field.Name] || ''}
+                                        onChange={(e) => updatePGNFields(pgnKey, { [field.Name]: parseFloat(e.target.value) })}
+                                    >
+                                        {field.EnumValues.map((enumValue) => (
+                                            <option key={enumValue.value} value={enumValue.value}>
+                                                {enumValue.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                     {field.Unit && <span className="pgn-value-unit">{field.Unit}</span>}
                                 </div>
                             </div>
                         );
-                    })}
-                </div>
+                    }
+
+                    return (
+                        <div key={field.Name} className="pgn-value-box">
+                            <div className="pgn-value-label">
+                                {field.Description || field.Name}
+                            </div>
+                            <div className="pgn-value-input-wrapper">
+                                <input
+                                    type="number"
+                                    value={intermediateValues[field.Name] || currentValues[field.Name]?.toFixed(2) || '0.00'}
+                                    onChange={(e) => handleValueChange(field.Name, e.target.value)}
+                                    onBlur={(e) => handleValueCommit(field.Name, e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e, field.Name, e.currentTarget.value)}
+                                    min={getFieldMin(field)}
+                                    max={getFieldMax(field)}
+                                    step={getFieldStep(field)}
+                                    className="pgn-value-input"
+                                />
+                                {field.Unit && <span className="pgn-value-unit">{field.Unit}</span>}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

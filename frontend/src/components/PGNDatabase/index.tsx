@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TabType } from './types';
 import PGNDatabaseHeader from './PGNDatabaseHeader';
-import PGNItem from './PGNItem';
+import PGNItem from './PGNDefItem';
 import './PGNDatabase.css';
 import { pgnApi } from '../../services/api';
 import { PGNDefinition } from '../../types';

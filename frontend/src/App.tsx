@@ -63,10 +63,6 @@ function App() {
     setSelectedPGNs(newSelectedPGNs);
   };
 
-  useEffect(() => {
-    console.log('Stream Log:', streamLog);
-  }, [streamLog]);
-
   const handleConnectionStatusChange = (hasConnections: boolean) => {
     setHasConnectedDevices(hasConnections);
   };

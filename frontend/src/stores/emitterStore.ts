@@ -35,7 +35,7 @@ export const useEmitterStore = create<EmitterStore>((set) => ({
     setIsEmitting: (isEmitting: boolean) => set({ isEmitting }),
     setStreamLog: (log: string[]) => set({ streamLog: log }),
     appendToStreamLog: (log: string) => set((state) => ({
-        streamLog: [...state.streamLog, log].slice(-700)
+        streamLog: [...state.streamLog, log].slice(-10000)
     })),
     clearStreamLog: () => set({ streamLog: [] }),
     toggleStreamLog: () => set((state) => ({ showStreamLog: !state.showStreamLog })),
