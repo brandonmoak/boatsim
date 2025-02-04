@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Simulation } from '../core/Simulation';
 import { BoatState, Waypoint } from '../types';
+import { usePGNStore } from '../stores/pgnStore';
 
 interface SimulationControllerProps {
   isSimulating: boolean;
-  onPGNFieldsUpdate: (system: string, fields: any) => void;
   waypoints: Waypoint[];
   boatState: BoatState;
   setBoatState: (state: BoatState) => void;
@@ -12,14 +12,16 @@ interface SimulationControllerProps {
 
 function SimulationController({ 
   isSimulating, 
-  onPGNFieldsUpdate,
   waypoints,
   boatState,
   setBoatState
 }: SimulationControllerProps) {
+
+  const { pgnState } = usePGNStore();
   const simulationRef = useRef<Simulation | null>(null);
 
   useEffect(() => {
+    console.log('Boat state has been updated', boatState);
   }, [boatState]);
   
   // Initialize simulation only once when component mounts
@@ -27,10 +29,7 @@ function SimulationController({
     console.log('Initializing simulation with waypoints:', waypoints);
     // Initialize simulation
     simulationRef.current = new Simulation(
-      boatState,
-      setBoatState,
       waypoints,
-      onPGNFieldsUpdate
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once
@@ -49,17 +48,24 @@ function SimulationController({
 
     if (isSimulating) {
       const intervalId = setInterval(() => {
-        console.log('Updating position', boatState);
-        const newPosition = simulationRef.current?.updatePosition(boatState);
-        if (newPosition) {
-          setBoatState(newPosition);
+        console.log('Simulation tick');
+        const current_state = {
+          ...boatState,
+          speed_mps: pgnState['128259']['Speed Water Referenced']
+        }
+        console.log('Updating position', current_state);
+        const newBoatState = simulationRef.current?.updatePosition(current_state);
+        console.log('New boat state', newBoatState);
+        if (newBoatState) {
+          console.log('Updating boat state!', newBoatState);
+          setBoatState(newBoatState);
         }
       }, 1000); // 1000ms = 1Hz
 
       // Cleanup interval when isSimulating changes to false or component unmounts
       return () => clearInterval(intervalId);
     }
-  }, [isSimulating, boatState]);
+  }, [isSimulating, boatState, pgnState]);
 
   // Component doesn't need to render anything
   return null;

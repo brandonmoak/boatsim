@@ -1,4 +1,4 @@
-import { PGNState } from '../types';
+import { PGNState } from '../stores/pgnStore';
 
 // Add this function to get current PGN state values
 export const getCurrentPGNValues = (pgn: string, pgnState: PGNState): Record<string, number> => {

@@ -1,6 +1,5 @@
 import LatLon from 'geodesy/latlon-spherical.js';
 import { BoatState } from '../types';
-import { loadPGNConfig } from '../utils/pgn_definition_loader';
 import { 
   createGNSSPositionData, 
   createRapidPositionData, 
@@ -8,34 +7,20 @@ import {
   createSystemTimeData,
   createSpeedData
 } from '../utils/pgn_factory';
+import { usePGNStore } from '../stores/pgnStore';
 
 export class Simulation {
-  private pgnConfig: any;
   private lastUpdate: Date;
   private currentWaypointIndex: number;
-  private initialBoatState: BoatState;
   private waypoints: Array<{lat: number, lon: number}>;
-  private onPGNFieldsUpdate: (system: string, fields: any) => void;
 
   constructor(
-    initialBoatState: BoatState,
-    setBoatState: (boatState: BoatState) => void,
     waypoints: Array<{lat: number, lon: number}>,
-    onPGNFieldsUpdate: (system: string, fields: any) => void
   ) {
     console.log('Initializing simulation!', waypoints);
-    this.pgnConfig = null;
     this.lastUpdate = new Date();
     this.currentWaypointIndex = 0;
     this.waypoints = waypoints;
-    this.onPGNFieldsUpdate = onPGNFieldsUpdate;
-    this.initialBoatState = initialBoatState;
-    // Load PGN config when class is instantiated
-    this.initializePGNConfig();
-  }
-
-  private async initializePGNConfig() {
-    this.pgnConfig = await loadPGNConfig();
   }
 
   private calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -128,23 +113,22 @@ export class Simulation {
   }
 
   private updatePGNs(position: BoatState, currentTime: Date) {
-    if (this.pgnConfig) {
-      // Create all PGN messages with the same timestamp
-      const pgn129029 = createGNSSPositionData(position, currentTime);
-      this.onPGNFieldsUpdate('129029', pgn129029.fields);
+    const { updatePGNFields } = usePGNStore.getState();
+    // Create all PGN messages with the same timestamp
+    const pgn129029 = createGNSSPositionData(position, currentTime);
+    updatePGNFields('129029', pgn129029.fields);
 
-      const pgn129025 = createRapidPositionData(position, currentTime);
-      this.onPGNFieldsUpdate('129025', pgn129025.fields);
+    const pgn129025 = createRapidPositionData(position, currentTime);
+    updatePGNFields('129025', pgn129025.fields);
 
-      const pgn129026 = createCOGSOGData(position, currentTime);
-      this.onPGNFieldsUpdate('129026', pgn129026.fields);
+    const pgn129026 = createCOGSOGData(position, currentTime);
+    updatePGNFields('129026', pgn129026.fields);
 
-      const pgn126992 = createSystemTimeData(currentTime);
-      this.onPGNFieldsUpdate('126992', pgn126992.fields);
+    const pgn126992 = createSystemTimeData(currentTime);
+    updatePGNFields('126992', pgn126992.fields);
 
-      const pgn128259 = createSpeedData(position, currentTime);
-      this.onPGNFieldsUpdate('128259', pgn128259.fields);
-    }
+    const pgn128259 = createSpeedData(position, currentTime);
+    updatePGNFields('128259', pgn128259.fields);
   }
 
   public updateWaypoints(newWaypoints: Array<{lat: number, lon: number}>) {
@@ -152,17 +136,3 @@ export class Simulation {
   }
 } 
 
-// Function to drive the PGNs from the simulator
-export function wirePGNsToBoatState(setBoatState: (boatState: BoatState) => void, system: string, fields: Record<string, number>, currentBoatState: BoatState) {
-    console.log('PGN fields update:', system, fields);
-    if (system === '128259') {
-      const speed = fields['Speed Water Referenced'] ?? fields['Speed Ground Referenced'];
-      if (typeof speed !== 'undefined') {
-        console.log('Speed data received:', speed);
-        setBoatState({
-          ...currentBoatState,
-          speed_mps: speed
-        });
-    }
-  }
-}

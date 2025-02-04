@@ -234,17 +234,23 @@
 }
 
 .pgn-item {
-  background-color: #ffffff;  /* Default white background */
+  background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 8px 12px;
   width: 100%;
   display: flex;
-  height: 60px;  /* Fixed height */
+  flex-direction: column;
+  height: 45px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
 }
 
-.pgn-panel .pgn-number.simulated {
-  background-color: #8cb77a;  /* Light green background for simulated PGNs */
+.pgn-item.expanded {
+  height: auto;
+  min-height: 60px;
+  padding: 12px;
 }
 
 .pgn-item-fixed {
@@ -263,8 +269,8 @@
   overflow-x: auto;
   margin-left: 12px;
   display: flex;
-  align-items: center;  /* Center content vertically */
-  height: 100%;        /* Take full height */
+  align-items: flex-start;  /* Changed from center to flex-start */
+  height: 100%;
 }
 
 /* Custom scrollbar styling */
@@ -289,11 +295,20 @@
 
 .pgn-values-container {
   display: flex;
-  flex-direction: row;
-  gap: 12px;
-  min-width: min-content;
-  height: fit-content;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  padding: 6px;
+}
+
+.pgn-value-box {
+  flex: 0 0 auto;
+  min-width: 100px; /* adjust this value as needed */
+  border-width: 1px;
+  border-color: #ddd;
+  border-style: solid;
+  border-radius: 4px;
+  padding: 4px;
 }
 
 .pgn-value {
@@ -301,24 +316,40 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   min-width: 80px;
+  margin: 4px 0;
 }
 
 .pgn-number {
-  background: #0066cc;  /* Default blue background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.85em;
+  height: 16px;
+  min-width: 40px;
+  margin: auto 0;
+  background: var(--primary-blue);  /* Default color for non-simulated */
+}
+
+/* Add color variant for simulated PGNs */
+.simulated .pgn-number {
+  background: var(--primary-green);  /* Use green for simulated PGNs */
 }
 
 .pgn-description {
-  flex: 0 0 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 0;
   font-weight: 500;
+  height: 100%;
+  overflow: hidden;
+  padding-right: 10px;
+  min-width: 0;
 }
 
 .pgn-rate {
@@ -329,50 +360,37 @@
 /* PGN Values */
 .pgn-value-label {
   font-size: 0.75em;
-  color: #666;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  text-align: center;  /* Center the text */
+  text-align: left;  /* Changed from center to left */
 }
 
-.pgn-value-input-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  white-space: nowrap;
-  position: relative;  /* For absolute positioning of units */
+.pgn-value-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: fit-content;
 }
 
-/* Default size for number inputs */
-.pgn-value-input-group input {
+.pgn-value-input {
     width: 75px;
     padding: 2px 4px;
-    font-size: 0.9em;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    text-align: right;
     padding-right: 24px;
-}
-
-/* Wider size for select/enumeration inputs */
-.pgn-value-input-group select {
-    width: 150px;
-    padding: 2px 4px;
     font-size: 0.9em;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    text-align: left;
-    padding-right: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--input-radius);
+    text-align: right;
 }
 
 .pgn-value-unit {
-  position: absolute;
-  right: 4px;
-  font-size: 0.8em;
-  color: #666;
-  pointer-events: none;  /* Prevent unit from interfering with input */
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    pointer-events: none;
 }
 
 /* Ensure proper alignment */
@@ -608,15 +626,14 @@
 /* PGN Items in main panel */
 .pgn-panel .pgn-item {
   background: #f8f9fa;
-  border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 4px 20px 4px 12px;
+  padding: 0px 12px 0px 12px;
   width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -639,19 +656,14 @@
   color: white;
 }
 
-.pgn-panel .pgn-number {
-  align-self: flex-start;
-  background: #0066cc;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
-}
-
 .pgn-fixed-content {
   display: flex;
   gap: 12px;
-  align-items: center;  /* Center all children vertically */
+  align-items: center;
+  height: 100%;
+  padding: 0 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Wider minimum width for enum values */
@@ -710,4 +722,73 @@
   color: #666;
   font-weight: bold;
   font-size: 16px;
+}
+.pgn-stream-radio {
+  margin: 0 8px;
+  cursor: pointer;
+  align-self: center;
+}
+
+.pgn-item-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Ensure inputs don't trigger expansion */
+.pgn-item input,
+.pgn-item select {
+  cursor: auto;
+}
+
+/* New styles for the header row */
+.pgn-item-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0;
+}
+
+/* PGN Fields Summary */
+.pgn-fields-summary {
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    font-size: calc(var(--input-font-size) * 0.9);
+    font-weight: normal;
+    opacity: 0.9;
+    min-width: 200px;
+}
+
+/* Ensure the description text itself also truncates */
+.pgn-description > span:first-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 200px;
+}
+
+.pgn-description {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 400px;
+    overflow: hidden;
+}
+
+.description-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 200px;
+    max-width: 400px;
+}
+
+/* Remove any max-width constraints on containers */
+.pgn-item,
+.pgn-item-header {
+    width: 100%;
 }

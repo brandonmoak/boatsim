@@ -1,15 +1,6 @@
 import { PGNDefinition } from '../../types';
 
-export interface PGNDatabaseProps {
-  isOpen: boolean;
-  onClose: () => void;
-  pgnDefinitions: Record<string, PGNDefinition>;
-  defaultPGNs: Record<string, Record<string, number>>;
-  onUpdateDefaults: (newDefaults: Record<string, Record<string, number>>) => void;
-  selectedPGNs: string[];
-  onAddToSimulation: (pgn: string) => void;
-  getCurrentPGNValues: (pgn: string) => Record<string, number>;
-}
+
 
 export type TabType = 'all' | 'defaults';
 
@@ -19,7 +10,7 @@ export interface HeaderProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   pgnOptions: Array<{ value: string; label: string }>;
-  handleAddDefault: (option: { value: string; label: string } | null) => void;
+  handleAddDefault: (option: { pgn: string; description: string } | null) => void;
   onClose: () => void;
   onSaveDefaults: () => void;
   isSaving: boolean;

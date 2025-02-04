@@ -1,90 +1,76 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
+// Types
+import { 
+  BoatState, 
+  Waypoint,
+} from './types';
+// Stores
+import { usePGNStore } from './stores/pgnStore';
+import { useEmitterStore } from './stores/emitterStore';
+
 // Components
 import Map from './components/Map';
 import PGNPanel from './components/PGNPanel';
 import SimulationController from './components/SimulationController';
+import EmitterController from './components/EmitterController';
+import PGNDatabase from './components/PGNDatabase';
 import DeviceConnector from './components/DeviceConnector';
-// Types
-import { 
-  PGNState,
-  BoatState, 
-  PGNDefaults, 
-  Waypoint,
-} from './types';
+
 // Utils
-import { wirePGNsToBoatState } from './core/Simulation';
 import { initSocket } from './services/socket';
 import { loadPGNConfig } from './utils/pgn_definition_loader';
-import { getInitialPGNState, getDefaultPGNs } from './utils/pgn_defaults_loader';
+import { getDefaultPGNs } from './utils/pgn_defaults_loader';
 import { loadWaypoints } from './utils/waypoint_loader';
-import { PGNEmitter } from './core/PGNEmitter';
-import { getCurrentPGNValues, updatePGNState } from './utils/pgn_state';
 
 // Add this constant at the top of the file with other imports
 const SIMULATED_PGNS = ['129029', '126992', '129025', '129026', '128259'];
 
 function App() {
+  // Initialize stores
+  const { initializePGNStore } = usePGNStore();
+  const { setPGNsToStream, setIsEmitting, streamLog, toggleStreamLog } = useEmitterStore();
+
   // Create state variables
   const [isSimulating, setIsSimulating] = useState(false);
-  const [pgnState, setPGNState] = useState<PGNState>({});
-  const pgnStateRef = useRef(pgnState);
   const [boatState, setBoatState] = useState<BoatState>({ lat: 44.6476, lon: -63.5728, heading: 0, speed_mps: 10 });
   const [selectedPGNs, setSelectedPGNs] = useState<string[]>([]);
-  const [pgnRates, setPgnRates] = useState<Record<string, number>>({});
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
-  const [defaultPGNs, setDefaultPGNs] = useState<PGNDefaults>({});
-  const [pgnEmitter, setPgnEmitter] = useState<PGNEmitter | null>(null);
+  const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
+  const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
+  const [hasConnectedDevices, setHasConnectedDevices] = useState(false);
 
   useEffect(() => {
-    console.log("initializing socket");
     initSocket();
-    console.log("socket initialized");
     Promise.all([
       loadPGNConfig(),
       loadWaypoints(),
       getDefaultPGNs()
     ]).then(([config, loadedWaypoints, defaults]) => {
-      setPGNState(getInitialPGNState(config));
+      initializePGNStore(config, defaults);
       setWaypoints(loadedWaypoints);
-      setDefaultPGNs(defaults);
       setSelectedPGNs(Object.keys(defaults));
-      setPgnRates(PGNEmitter.getInitialRates(config));
 
-      // Initialize PGNEmitter
-      const emitter = new PGNEmitter(
-        config,
-        () => pgnStateRef.current,
-        Object.keys(defaults),
-        PGNEmitter.getInitialRates(config),
-        SIMULATED_PGNS
-      );
-      setPgnEmitter(emitter);
-      
+      const defaultPGNs = Object.keys(defaults);
+      const uniquePGNs = Array.from(new Set([...defaultPGNs, ...SIMULATED_PGNS]));
+      setPGNsToStream(uniquePGNs);
+
       console.log('Waypoints:', loadedWaypoints);
     });
-  }, []);
-
-  useEffect(() => {
-    console.log('pgnState', pgnState);
-      pgnStateRef.current = pgnState;
-  }, [pgnState]);
-
-  const handlePGNFieldsUpdate = (system: string, fields: Record<string, number>) => {
-    console.log('PGN fields update:', system, fields);
-    wirePGNsToBoatState(setBoatState, system, fields, boatState);
-    setPGNState(prevState => updatePGNState(prevState, system, fields));
-  };
-
-  const handlePGNRateUpdate = (system: string, rate: number) => {
-    setPgnRates({ ...pgnRates, [system]: rate });
-    pgnEmitter?.updateRate(system, rate);
-    console.log('PGN rate updated:', system, rate);
-  };
+  }, [initializePGNStore]);
 
   const handleSelectedPGNsChange = (newSelectedPGNs: string[]) => {
     setSelectedPGNs(newSelectedPGNs);
-    pgnEmitter?.updateSelectedPGNs(newSelectedPGNs);
+  };
+
+  const handleConnectionStatusChange = (hasConnections: boolean) => {
+    setHasConnectedDevices(hasConnections);
+  };
+
+  const handleAddToSimulation = (pgn: string) => {
+    if (!selectedPGNs.includes(pgn)) {
+      setSelectedPGNs([...selectedPGNs, pgn]);
+    }
   };
 
   return (
@@ -97,35 +83,41 @@ function App() {
           />
         </div>
         <PGNPanel 
-          pgnState={pgnState}
-          pgnRates={pgnRates}
           selectedPGNs={selectedPGNs}
           simulatedPGNs={SIMULATED_PGNS}
-          onPGNFieldsUpdate={handlePGNFieldsUpdate}
-          onPGNRateUpdate={handlePGNRateUpdate}
           onSelectedPGNsChange={handleSelectedPGNsChange}
-          defaultPGNs={defaultPGNs}
-          updateDefaultPGNs={(newDefaults: PGNDefaults) => {setDefaultPGNs(newDefaults)}}
-          getCurrentPGNValues={(pgn: string) => getCurrentPGNValues(pgn, pgnState)}
-          onStart={() => {
-            setIsSimulating(true);
-            pgnEmitter?.start();
-          }}
-          onStop={() => {
-            setIsSimulating(false);
-            pgnEmitter?.stop();
-          }}
+          onStart={() => {setIsSimulating(true); setIsEmitting(true);}}
+          onStop={() => {setIsSimulating(false); setIsEmitting(false);}}
           isSimulating={isSimulating}
-          boatState={boatState}
+          onOpenDatabase={() => setIsDatabaseViewerOpen(true)}
+          onToggleDeviceMenu={() => setIsDeviceMenuOpen(!isDeviceMenuOpen)}
+          onToggleEmitLogs={toggleStreamLog}
+          hasConnectedDevices={hasConnectedDevices}
         />
       </div>
+      {isDatabaseViewerOpen && (
+        <PGNDatabase
+          isOpen={isDatabaseViewerOpen}
+          onClose={() => setIsDatabaseViewerOpen(false)}
+          pgnDefinitions={usePGNStore.getState().pgnDefinitions}
+          selectedPGNs={selectedPGNs}
+          onAddToSimulation={handleAddToSimulation}
+        />
+      )}
+      {isDeviceMenuOpen && (
+        <DeviceConnector 
+          className="device-menu-overlay" 
+          onClose={() => setIsDeviceMenuOpen(false)}
+          onConnectionStatusChange={handleConnectionStatusChange}
+        />
+      )}
       <SimulationController
         isSimulating={isSimulating} 
-        onPGNFieldsUpdate={handlePGNFieldsUpdate}
         waypoints={waypoints}
         boatState={boatState}
         setBoatState={setBoatState}
       />
+      <EmitterController />
     </div>
   );
 }

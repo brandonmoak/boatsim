@@ -5,12 +5,6 @@
     "Boost Pressure": 25,
     "Instance": 1
   },
-  "127508": {
-    "Instance": 1,
-    "Voltage": 48,
-    "Current": 10,
-    "Temperature": 293.15
-  },
   "128259": {
     "Speed Water Referenced": 10,
     "Speed Water Referenced Type": 2,
