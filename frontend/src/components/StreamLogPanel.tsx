@@ -90,10 +90,10 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
 
     return (
       <div style={{ display: 'flex', gap: '8px' }}>
-        <span style={{ color: '#888' }}>{timestamp}</span>
-        <span style={{ color: '#007bff' }}>{pgnId}</span>
-        <span style={{ color: '#28a745' }}>{name}</span>
-        <span dangerouslySetInnerHTML={{ __html: formattedData }} />
+        <span style={{ color: '#888', width: '170px', flexShrink: 0 }}>{timestamp}</span>
+        <span style={{ color: '#007bff', width: '45px', flexShrink: 0 }}>{pgnId}</span>
+        <span style={{ color: '#28a745', width: '200px', flexShrink: 0 }}>{name}</span>
+        <span dangerouslySetInnerHTML={{ __html: formattedData }} style={{ flex: 1 }} />
       </div>
     );
   };
