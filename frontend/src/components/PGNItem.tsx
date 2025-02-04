@@ -1,17 +1,18 @@
 import React, { useEffect } from 'react';
 import { PGNDefinition, PGNField } from '../types';
 import { usePGNStore } from '../stores/pgnStore';
+import { useEmitterStore } from '../stores/emitterStore';
 
 interface PGNItemProps {
     config: PGNDefinition;
     pgnKey: string;
-    rate?: number;
-    isSimulated?: boolean;
+    rate: number;
+    isSimulated: boolean;
 }
 
 const PGNItem: React.FC<PGNItemProps> = ({ config, pgnKey, rate, isSimulated }) => {
-    // Add state to track intermediate input values
     const { pgnState, updatePGNFields, updatePGNRate } = usePGNStore();
+    const { PGNsToStream, addPGNToStream, removePGNFromStream } = useEmitterStore();
     const [intermediateValues, setIntermediateValues] = React.useState<Record<string, string>>({});
     const currentValues = pgnState[pgnKey] || {};
 
@@ -81,8 +82,23 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, pgnKey, rate, isSimulated }) 
         updatePGNRate(pgnKey, parsedRate);
     };
 
+    const handleStreamToggle = () => {
+        if (PGNsToStream.includes(pgnKey)) {
+            removePGNFromStream(pgnKey);
+        } else {
+            addPGNToStream(pgnKey);
+        }
+    };
+
     return (
         <div className={`pgn-item ${isSimulated ? 'simulated' : ''}`}>
+            <input
+                type="checkbox"
+                className="pgn-stream-radio"
+                checked={PGNsToStream.includes(pgnKey)}
+                onChange={handleStreamToggle}
+                aria-label={`Toggle streaming for PGN ${config.PGN}`}
+            />
             <div className="pgn-item-fixed">
                 <div className="pgn-fixed-content">
                     <span className={`pgn-number ${isSimulated ? 'simulated' : ''}`}>PGN {config.PGN}</span>
@@ -90,7 +106,7 @@ const PGNItem: React.FC<PGNItemProps> = ({ config, pgnKey, rate, isSimulated }) 
                         <div className="pgn-value-input-group">
                             <input
                                 type="number"
-                                value={rate?.toFixed(3) || ''}
+                                value={rate.toFixed(3)}
                                 onChange={handleRateChange}
                                 min={0}
                                 max={100}

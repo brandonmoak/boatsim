@@ -1,29 +1,25 @@
 import { getSocket } from '../services/socket';
 import { PGNDefinition } from '../types';
+import { usePGNStore } from '../stores/pgnStore';
+import { useEmitterStore } from '../stores/emitterStore';
 
 export class PGNEmitter {
   private timerWorker: Worker;
-  private pgnConfigs: Record<string, PGNDefinition>;
   private getLatestState: () => Record<string, Record<string, number>>;
-  private selectedPGNs: string[];
   private pgnRates: Record<string, number>;
-  private requiredPGNs: string[];
   private isEmitting: boolean;
+  private pgnDefinitions: Record<string, PGNDefinition>;
 
   constructor(
-    pgnConfigs: Record<string, PGNDefinition>,
     getLatestState: () => Record<string, Record<string, number>>,
-    selectedPGNs: string[] = [],
     pgnRates: Record<string, number> = {},
-    requiredPGNs: string[] = []
   ) {
-    this.pgnConfigs = pgnConfigs;
+    const { pgnDefinitions } = usePGNStore.getState();
     this.getLatestState = getLatestState;
-    this.selectedPGNs = selectedPGNs;
     this.pgnRates = pgnRates;
-    this.requiredPGNs = requiredPGNs;
     this.isEmitting = false;
-    
+    this.pgnDefinitions = pgnDefinitions;
+
     // Initialize Web Worker
     this.timerWorker = new Worker(
       new URL('../utils/timer.worker.ts', import.meta.url)
@@ -35,12 +31,24 @@ export class PGNEmitter {
   private setupWorkerMessageHandler(): void {
     this.timerWorker.onmessage = (e) => {
       const { pgnKey } = e.data;
-      const config = this.pgnConfigs[pgnKey];
+      const config = this.pgnDefinitions[pgnKey];
       if (config) {
         const currentState = this.getLatestState();
         this.emitPGNData(pgnKey, config, currentState);
       }
     };
+  }
+
+  private get_stream_line({timestamp, pgn_name, pgn_id, values}: {timestamp: string, pgn_name: string, pgn_id: number, values: Record<string, number>}): string {
+    // Format timestamp to remove 'T' and 'Z' and use space instead
+    const formattedTimestamp = timestamp.replace('T', ' ').replace('Z', '');
+    
+    // Custom JSON formatting without escapes
+    const formattedValues = '{' + Object.entries(values)
+      .map(([key, value]) => `${key}:${value}`)
+      .join(' | ') + '}';
+      
+    return `${formattedTimestamp} ${pgn_id} ${pgn_name} ${formattedValues}`;
   }
 
   private emitPGNData(
@@ -53,6 +61,8 @@ export class PGNEmitter {
       console.error('Socket not found');
       return;
     }
+
+    const { appendToStreamLog } = useEmitterStore.getState();
 
     const timestamp = new Date().toISOString();
     const values: Record<string, number> = {};
@@ -67,12 +77,12 @@ export class PGNEmitter {
 
     const pgnUpdate = {
       timestamp,
-      pgn_name: pgnKey,
+      pgn_name: config.Id,
       pgn_id: config.PGN,
       values: values
     };
 
-    if (config.PGN === 129029 || config.PGN == 129025) {
+    if (config.PGN === 129029 || config.PGN === 129025) {
       if (values.Latitude === 0 || values.Longitude === 0) { 
         console.log('Latitude or Longitude is 0, skipping PGN emission');
         return;
@@ -80,6 +90,8 @@ export class PGNEmitter {
     }
 
     // console.log('Emitting PGN:', pgnUpdate);
+    const log_string = this.get_stream_line(pgnUpdate);
+    appendToStreamLog(log_string);
     socket.volatile.emit('update_pgn_2000', [pgnUpdate]);
   }
 
@@ -90,12 +102,12 @@ export class PGNEmitter {
     this.isEmitting = true;
 
     // Create array of unique PGNs including required PGNs
-    const pgnsToEmit = Array.from(new Set([...this.selectedPGNs, ...this.requiredPGNs]));
-    console.log('PGNs to emit:', pgnsToEmit);
+    const { PGNsToStream } = useEmitterStore.getState();
+    console.log('PGNs to emit:', PGNsToStream);
 
     // Configure worker for each PGN
-    pgnsToEmit.forEach(pgnKey => {
-      const config = this.pgnConfigs[pgnKey];
+    PGNsToStream.forEach(pgnKey => {
+      const config = this.pgnDefinitions[pgnKey];
       if (!config) {
         console.error(`No config found for PGN: ${pgnKey}`);
         return;
@@ -126,21 +138,10 @@ export class PGNEmitter {
     }
   }
 
-  public updateSelectedPGNs(newSelectedPGNs: string[]): void {
-    this.selectedPGNs = newSelectedPGNs;
+  public updateSelectedPGNs(): void {
     if (this.isEmitting) {
         this.stop();
         this.start(); // Restart emission with new PGN selection
     }
-  }
-
-  public static getInitialRates(pgnConfigs: Record<string, PGNDefinition>): Record<string, number> {
-    return Object.keys(pgnConfigs).reduce((acc, pgnKey) => {
-      const config = pgnConfigs[pgnKey];
-      return {
-        ...acc,
-        [pgnKey]: config.TransmissionInterval ? 1000 / config.TransmissionInterval : 1
-      };
-    }, {});
   }
 } 

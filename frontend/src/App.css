@@ -711,3 +711,12 @@
   font-weight: bold;
   font-size: 16px;
 }
+.pgn-stream-radio {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.pgn-item-container {
+  display: flex;
+  align-items: center;
+}

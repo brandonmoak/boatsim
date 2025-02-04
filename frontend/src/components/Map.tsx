@@ -50,10 +50,6 @@ declare module 'leaflet' {
   }
 }
 
-interface RotationControlType extends L.Control {
-  _updateInterval?: ReturnType<typeof setInterval>;
-}
-
 const Map: React.FC<MapProps> = ({ 
   boatState, 
   waypoints,

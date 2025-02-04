@@ -1,6 +1,5 @@
 import LatLon from 'geodesy/latlon-spherical.js';
 import { BoatState } from '../types';
-import { loadPGNConfig } from '../utils/pgn_definition_loader';
 import { 
   createGNSSPositionData, 
   createRapidPositionData, 

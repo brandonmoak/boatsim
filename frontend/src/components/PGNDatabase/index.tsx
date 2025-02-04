@@ -1,20 +1,28 @@
 import React, { useState, useMemo } from 'react';
-import { PGNDatabaseProps, TabType } from './types';
+import { TabType } from './types';
 import PGNDatabaseHeader from './PGNDatabaseHeader';
 import PGNItem from './PGNItem';
 import './PGNDatabase.css';
 import { pgnApi } from '../../services/api';
+import { PGNDefinition } from '../../types';
+import { usePGNStore } from '../../stores/pgnStore';
+
+export interface PGNDatabaseProps {
+  isOpen: boolean;
+  onClose: () => void;
+  pgnDefinitions: Record<string, PGNDefinition>;
+  selectedPGNs: string[];
+  onAddToSimulation: (pgn: string) => void;
+}
 
 const PGNDatabase: React.FC<PGNDatabaseProps> = ({
   isOpen,
   onClose,
   pgnDefinitions,
-  defaultPGNs,
-  onUpdateDefaults,
   selectedPGNs,
   onAddToSimulation,
-  getCurrentPGNValues
 }) => {
+  const { addPGNToDefault, removePGNFromDefault, updatePGNDefault, pgnDefault, } = usePGNStore();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -28,39 +36,26 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
     [pgnDefinitions]
   );
 
-  const handleAddDefault = (option: { value: string; label: string } | null) => {
+  const handleAddDefault = (option: { pgn: string; description: string } | null) => {
     if (option) {
-      const newValues = {
-        ...defaultPGNs,
-        [option.value]: getCurrentPGNValues(option.value)
-      };
-      onUpdateDefaults(newValues);
+      addPGNToDefault(option.pgn, pgnDefault[option.pgn]);
     }
   };
 
   const handleRemoveDefault = (pgn: string) => {
-    const newValues = { ...defaultPGNs };
-    delete newValues[pgn];
-    onUpdateDefaults(newValues);
+    removePGNFromDefault(pgn);
   };
 
   const handleValueChange = (pgn: string, fieldName: string, value: string) => {
-    const newValues = {
-      ...defaultPGNs,
-      [pgn]: {
-        ...defaultPGNs[pgn],
-        [fieldName]: parseFloat(value)
-      }
-    };
-    onUpdateDefaults(newValues);
+    const fields = {
+      ...pgnDefault[pgn],
+      [fieldName]: parseFloat(value)
+    }
+    updatePGNDefault(pgn, fields);
   };
 
   const handleAddToDefaults = (pgn: string) => {
-    const newValues = {
-      ...defaultPGNs,
-      [pgn]: getCurrentPGNValues(pgn)
-    };
-    onUpdateDefaults(newValues);
+    addPGNToDefault(pgn, {});
   };
 
   const handleSaveDefaults = async () => {
@@ -68,8 +63,7 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
     setSaveError(null);
 
     try {
-      const savedDefaults = await pgnApi.saveDefaults(defaultPGNs);
-      onUpdateDefaults(savedDefaults);
+      await pgnApi.saveDefaults(pgnDefault);
       alert('Default values saved successfully!');
     } catch (error) {
       console.error('Error saving defaults:', error);
@@ -82,7 +76,7 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
 
   const filteredPGNs = useMemo(() => {
     const pgns = activeTab === 'defaults' 
-      ? Object.keys(defaultPGNs)
+      ? Object.keys(pgnDefault)
       : Object.keys(pgnDefinitions);
 
     if (!searchTerm) return pgns;
@@ -91,7 +85,7 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
       pgn.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pgnDefinitions[pgn]?.Description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [activeTab, searchTerm, defaultPGNs, pgnDefinitions]);
+  }, [activeTab, searchTerm, pgnDefault, pgnDefinitions]);
 
   if (!isOpen) return null;
 
@@ -120,12 +114,12 @@ const PGNDatabase: React.FC<PGNDatabaseProps> = ({
               key={pgn}
               pgn={pgn}
               definition={pgnDefinitions[pgn]}
-              isDefault={pgn in defaultPGNs}
+              isDefault={pgn in pgnDefault}
               activeTab={activeTab}
               onRemoveDefault={handleRemoveDefault}
               onAddToDefaults={handleAddToDefaults}
               onAddToSimulation={onAddToSimulation}
-              editedValues={defaultPGNs}
+              editedValues={pgnDefault}
               onValueChange={handleValueChange}
               isSelected={(p) => selectedPGNs.includes(p)}
             />

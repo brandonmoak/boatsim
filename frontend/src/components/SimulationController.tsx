@@ -21,6 +21,7 @@ function SimulationController({
   const simulationRef = useRef<Simulation | null>(null);
 
   useEffect(() => {
+    console.log('Boat state has been updated', boatState);
   }, [boatState]);
   
   // Initialize simulation only once when component mounts
@@ -41,28 +42,30 @@ function SimulationController({
     }
   }, [waypoints]);
 
-  useEffect(() =>{
-    // Take the speed from the pgnState and update the boatState
-    setBoatState({
-      ...boatState,
-      speed_mps: pgnState['128259']['Speed Water Referenced']
-    });
-  }, [pgnState])
-
   // Handle simulation start/stop
   useEffect(() => {
     if (!simulationRef.current) return;
 
     if (isSimulating) {
       const intervalId = setInterval(() => {
-        console.log('Updating position', boatState);
-        simulationRef.current?.updatePosition(boatState);
+        console.log('Simulation tick');
+        const current_state = {
+          ...boatState,
+          speed_mps: pgnState['128259']['Speed Water Referenced']
+        }
+        console.log('Updating position', current_state);
+        const newBoatState = simulationRef.current?.updatePosition(current_state);
+        console.log('New boat state', newBoatState);
+        if (newBoatState) {
+          console.log('Updating boat state!', newBoatState);
+          setBoatState(newBoatState);
+        }
       }, 1000); // 1000ms = 1Hz
 
       // Cleanup interval when isSimulating changes to false or component unmounts
       return () => clearInterval(intervalId);
     }
-  }, [isSimulating, boatState]);
+  }, [isSimulating, boatState, pgnState]);
 
   // Component doesn't need to render anything
   return null;

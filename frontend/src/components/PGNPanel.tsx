@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Select from 'react-select';
 import PGNItem from './PGNItem';
-import { PGNDefinition } from '../types';
-import { loadPGNConfig } from '../utils/pgn_definition_loader';
 import PGNDatabase from './PGNDatabase';
 import DeviceConnector from './DeviceConnector';
 import { usePGNStore } from '../stores/pgnStore';
@@ -17,8 +15,6 @@ export interface PGNPanelProps {
   selectedPGNs: string[];
   simulatedPGNs: string[];
   onSelectedPGNsChange: (pgns: string[]) => void;
-  defaultPGNs: Record<string, Record<string, number>>;
-  updateDefaultPGNs: (newDefaults: Record<string, Record<string, number>>) => void;
   onStart: () => void;
   onStop: () => void;
   isSimulating: boolean;
@@ -27,17 +23,13 @@ export interface PGNPanelProps {
 const PGNPanel = React.memo(({ 
   selectedPGNs,
   onSelectedPGNsChange,
-  defaultPGNs,
-  updateDefaultPGNs,
   onStart,
   onStop,
   isSimulating,
   simulatedPGNs,
 }: PGNPanelProps) => {
 
-    const { pgnState, pgnRates, fetchPGNFields, updatePGNRate, updatePGNFields } = usePGNStore();
-
-    const [pgnDefinitions, setPgnDefinitions] = useState<Record<string, PGNDefinition>>({});
+    const { pgnRates, pgnDefinitions } = usePGNStore();
     const [isDatabaseViewerOpen, setIsDatabaseViewerOpen] = useState(false);
     const [isDeviceMenuOpen, setIsDeviceMenuOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -47,14 +39,6 @@ const PGNPanel = React.memo(({
     const [hasConnectedDevices, setHasConnectedDevices] = useState(false);
 
     useEffect(() => {
-        console.log('Loading PGN definitions...');
-        loadPGNConfig().then(definitions => {
-            console.log('PGN definitions loaded:', definitions);
-            setPgnDefinitions(definitions);
-        });
-    }, []);
-
-    useEffect(() => {
         // Set initial height when component mounts
         if (isListVisible) {
             setContainerHeight('400px');
@@ -62,14 +46,6 @@ const PGNPanel = React.memo(({
             setContainerHeight('0px');
         }
     }, [isListVisible]);
-
-    const handlePGNChange = (pgnKey: string, field: string, value: number) => {
-        updatePGNFields(pgnKey, { [field]: value });
-    };
-
-    const handleRateChange = (pgnKey: string, value: number) => {
-        updatePGNRate(pgnKey, value);
-    };
 
     const handlePGNSelect = (option: PGNOption | null) => {
         if (option && !selectedPGNs.includes(option.value)) {
@@ -223,11 +199,9 @@ const PGNPanel = React.memo(({
                                         )}
                                         <PGNItem 
                                             config={definitions}
-                                            value={pgnState[pgnKey] || {}}
                                             rate={pgnRates[pgnKey]}
-                                            onValueChange={(field, value) => handlePGNChange(pgnKey, field, value)}
-                                            onRateChange={(value) => handleRateChange(pgnKey, value)}
                                             isSimulated={isSimulated}
+                                            pgnKey={pgnKey}
                                         />
                                     </div>
                                 );
@@ -240,11 +214,8 @@ const PGNPanel = React.memo(({
                     isOpen={isDatabaseViewerOpen}
                     onClose={() => setIsDatabaseViewerOpen(false)}
                     pgnDefinitions={pgnDefinitions}
-                    defaultPGNs={defaultPGNs}
-                    onUpdateDefaults={updateDefaultPGNs}
                     selectedPGNs={selectedPGNs}
                     onAddToSimulation={handleAddToSimulation}
-                    getCurrentPGNValues={fetchPGNFields}
                 />
             )}
             {isDeviceMenuOpen && (

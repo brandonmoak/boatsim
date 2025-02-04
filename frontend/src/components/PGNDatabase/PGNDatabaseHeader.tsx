@@ -13,6 +13,15 @@ const PGNDatabaseHeader: React.FC<HeaderProps> = ({
   onSaveDefaults,
   isSaving
 }) => {
+  const handleSelectChange = (option: { value: string; label: string } | null) => {
+    if (option) {
+      handleAddDefault({
+        pgn: option.value,
+        description: option.label
+      });
+    }
+  };
+
   return (
     <div className="pgn-database-header">
       <div className="pgn-database-title">
@@ -48,7 +57,7 @@ const PGNDatabaseHeader: React.FC<HeaderProps> = ({
               classNamePrefix="pgn-select"
               options={pgnOptions}
               value={null}
-              onChange={handleAddDefault}
+              onChange={handleSelectChange}
               placeholder="Add Default PGN..."
               isClearable={true}
               isDisabled={isSaving}

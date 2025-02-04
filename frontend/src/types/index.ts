@@ -15,14 +15,6 @@ export interface BoatState {
   speed_mps: number;  // Speed in meters per second
 }
 
-export interface SimulationProps {
-  isSimulating: boolean;
-  onPGNFieldsUpdate: (pgnKey: string, fields: Record<string, number>) => void;
-  waypoints: Waypoint[];
-  boatState: BoatState;
-  setBoatState: (state: BoatState) => void;
-}
-
 export interface ControlsProps {
   onStart: () => void;
   onStop: () => void;
