@@ -11,13 +11,14 @@ interface LogEntryProps {
   style: React.CSSProperties;
 }
 
-// Move renderLogEntry outside of the main component
+// Outside the main component to optimize rendering
 const renderLogEntry = (log: string) => {
   const match = log.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) (\d+) ([a-zA-Z]+) (.+)$/);
   
   if (!match) return <span style={{ fontSize: '12px' }}>{log}</span>;
 
-  const [_, timestamp, pgnId, name, data] = match;
+  // Skip the full match by using a leading comma
+  const [, timestamp, pgnId, name, data] = match;
 
   const innerData = data.slice(1, -1);
   const pairs = innerData.split('|');
@@ -74,50 +75,72 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
   const [panelHeight, setPanelHeight] = useState(400);
   const [panelWidth, setPanelWidth] = useState(initialWidth);
   const [isLive, setIsLive] = useState(true);
-  const logContainerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VariableSizeList>(null);
   const sizeMap = useRef<{[key: number]: number}>({});
 
-  // Filter logs based on input
-  const filteredLogs = streamLog.filter(log => 
+  // When pausing, we capture a full snapshot of logs.
+  const [pausedLogs, setPausedLogs] = useState<string[] | null>(null);
+
+  // Compute filtered logs differently depending on live/paused mode.
+  // When live, we work with the live `streamLog` from the store.
+  // When paused, we reapply filtering on the static snapshot that we captured.
+  const liveFilteredLogs = streamLog.filter(log => 
     log.toLowerCase().includes(filterText.toLowerCase())
   );
+  const pausedFilteredLogs = pausedLogs ? pausedLogs.filter(log =>
+    log.toLowerCase().includes(filterText.toLowerCase())
+  ) : [];
+  const logsToRender = isLive ? liveFilteredLogs : pausedFilteredLogs;
 
-  // Update scroll position when new logs arrive
-  useEffect(() => {
-    if (isLive && listRef.current && filteredLogs.length > 0) {
-      requestAnimationFrame(() => {
-        listRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
-      });
+  // Toggle live mode and capture snapshot when pausing.
+  const toggleLive = () => {
+    if (isLive) {
+      // Capture a snapshot of the current full logs.
+      setPausedLogs([...streamLog]);
+    } else {
+      setPausedLogs(null);
     }
-  }, [filteredLogs.length, isLive]);
-
-  // Add function to get item size
-  const getItemSize = (index: number) => {
-    return sizeMap.current[index] || 60; // Default to 60px if not measured yet
+    setIsLive(!isLive);
   };
 
-  // Add function to set item size
+  // Extract the last live log to use as a dependency.
+  const lastLiveLog = liveFilteredLogs[liveFilteredLogs.length - 1];
+  // Auto-scroll only when in live mode using the live filtered logs.
+  useEffect(() => {
+    if (isLive && listRef.current && liveFilteredLogs.length > 0) {
+      requestAnimationFrame(() => {
+        listRef.current?.scrollToItem(liveFilteredLogs.length - 1, 'end');
+      });
+    }
+  }, [isLive, liveFilteredLogs.length, lastLiveLog]);
+
+  // Function to get the item size; uses a default if not yet measured.
+  const getItemSize = (index: number) => {
+    return sizeMap.current[index] || 60;
+  };
+
+  // Update size mapping and let react-window recalc sizes when needed.
   const setItemSize = (index: number, size: number) => {
     sizeMap.current[index] = size;
     listRef.current?.resetAfterIndex(index);
   };
 
-  // Update Row component to measure content
+  // Row component uses the computed logsToRender.
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const rowRef = useRef<HTMLDivElement>(null);
+    const currentLog = logsToRender[index];
 
     useEffect(() => {
       if (rowRef.current) {
         const height = rowRef.current.getBoundingClientRect().height;
         setItemSize(index, height);
       }
-    }, [filteredLogs[index]]);
+    }, [currentLog, index]);
 
     return (
       <div ref={rowRef} style={{ ...style, height: 'auto' }}>
-        <LogEntry log={filteredLogs[index]} style={{}} />
+        <LogEntry log={logsToRender[index]} style={{}} />
       </div>
     );
   };
@@ -140,7 +163,7 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
         zIndex: 1000,
       }}
     >
-      {/* Header with filter, live toggle, and close button */}
+      {/* Header Section */}
       <div style={{ 
         padding: '8px', 
         borderBottom: '1px solid #ccc',
@@ -162,7 +185,7 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
           }}
         />
         <div
-          onClick={() => setIsLive(!isLive)}
+          onClick={toggleLive}
           style={{
             cursor: 'pointer',
             padding: '4px 8px',
@@ -192,20 +215,20 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
         </div>
       </div>
 
-      {/* Log list container */}
+      {/* Log List Container */}
       <div style={{ flex: 1 }}>
         <VariableSizeList
           ref={listRef}
           height={panelHeight - 45}
           width={panelWidth - 2}
-          itemCount={filteredLogs.length}
+          itemCount={logsToRender.length}
           itemSize={getItemSize}
         >
           {Row}
         </VariableSizeList>
       </div>
 
-      {/* Resize handles */}
+      {/* Resize Handle for Height */}
       <div
         style={{
           height: '6px',
@@ -231,6 +254,7 @@ const StreamLogPanel: React.FC<StreamLogPanelProps> = ({ initialWidth = 800 }) =
           document.addEventListener('mouseup', onMouseUp);
         }}
       />
+      {/* Resize Handle for Width */}
       <div
         style={{
           position: 'absolute',
