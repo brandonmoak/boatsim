@@ -1,0 +1,37 @@
+{
+  "name": "boatsim",
+  "version": "1.0.0",
+  "description": "Boat simulator with NMEA 2000 support",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:frontend": "cross-env $(node scripts/load-env.js) npm run start --workspace=frontend",
+    "start:backend": "cross-env $(node scripts/load-env.js) npm run start --workspace=backend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
+    "dev:backend": "cross-env $(node scripts/load-env.js) npm run dev --workspace=backend",
+    "build": "cross-env $(node scripts/load-env.js) npm run build --workspace=frontend",
+    "test": "npm run test --workspace=frontend",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
+    "create-config": "chmod +x scripts/create_boatsim_env.sh && ./scripts/create_boatsim_env.sh",
+    "echo-config": "node scripts/load-env.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
+    "dotenv-expand": "^11.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "all": "^0.0.0"
+  }
+}

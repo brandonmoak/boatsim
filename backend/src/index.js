@@ -5,13 +5,20 @@ import fs from 'fs';
 import { MessageForwarder } from './message_forwarder.js';
 import { configureServer } from './utils/server_config.js';
 import { saveDefaults, getDefaults } from './utils/storage.js';
+import os from 'os';
+import dotenv from 'dotenv';
+
+// Load environment variables from ~/.boatsim/.env
+const boatsimEnvPath = path.join(os.homedir(), '.boatsim', '.env');
+dotenv.config({ path: boatsimEnvPath });
 
 // configure the environment 
-const actisensePath = '/dev/serial/by-id/usb-Actisense_NGX-1_4CD81-if00-port0';
-const frontendEnvPath = path.join(process.cwd(), '../frontend/.env');
-const frontendEnv = fs.readFileSync(frontendEnvPath, 'utf8');
-const frontendPort = frontendEnv.match(/PORT=(\d+)/)[1];
-const backendPort = frontendEnv.match(/REACT_APP_BACKEND_PORT=(\d+)/)[1];
+const frontendPort = process.env.PORT;
+const backendPort = process.env.REACT_APP_BACKEND_PORT;
+
+if (!frontendPort || !backendPort) {
+    throw new Error('Required environment variables PORT and REACT_APP_BACKEND_PORT not found in ~/.boatsim/.env');
+}
 
 const app = express();
 const httpServer = createServer(app);
