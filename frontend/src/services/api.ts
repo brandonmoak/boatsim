@@ -1,5 +1,6 @@
 import { API_HEADERS } from '../config/api';
 import { PGNDefaults } from '../types';
+import { Waypoint } from '../types';
 
 const getBackendUrl = () => {
   return process.env.REACT_APP_BACKEND_URL || '';
@@ -59,6 +60,30 @@ export const pgnApi = {
     });
     if (!response.ok) {
       throw new Error(`Failed to get defaults: ${response.statusText}`);
+    }
+    return response.json();
+  }
+};
+
+export const waypointApi = {
+  async getWaypoints() {
+    const response = await fetch(`${getBackendUrl()}/api/waypoints`, {
+      headers: API_HEADERS
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to get waypoints: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  async saveWaypoints(waypoints: Waypoint[]) {
+    const response = await fetch(`${getBackendUrl()}/api/waypoints`, {
+      method: 'POST',
+      headers: API_HEADERS,
+      body: JSON.stringify({ waypoints })
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to save waypoints: ${response.statusText}`);
     }
     return response.json();
   }

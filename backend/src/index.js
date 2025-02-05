@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { MessageForwarder } from './message_forwarder.js';
 import { configureServer } from './utils/server_config.js';
-import { saveDefaults, getDefaults } from './utils/storage.js';
+import { saveDefaults, getDefaults, saveWaypoints, getWaypoints } from './utils/storage.js';
 import { boatsimEnvPath } from './utils/paths.js';
 import dotenv from 'dotenv';
 
@@ -51,6 +51,28 @@ app.get('/api/defaults', async (req, res) => {
   } catch (error) {
     console.error('Error reading defaults:', error);
     res.status(500).json({ error: 'Failed to read defaults' });
+  }
+});
+
+// Add route for saving waypoints
+app.post('/api/waypoints', async (req, res) => {
+  try {
+    const waypoints = await saveWaypoints(req.body);
+    res.json(waypoints);
+  } catch (error) {
+    console.error('Error saving waypoints:', error);
+    res.status(500).json({ error: 'Failed to save waypoints' });
+  }
+});
+
+// Add route for getting waypoints
+app.get('/api/waypoints', async (req, res) => {
+  try {
+    const waypoints = await getWaypoints();
+    res.json(waypoints);
+  } catch (error) {
+    console.error('Error reading waypoints:', error);
+    res.status(500).json({ error: 'Failed to read waypoints' });
   }
 });
 
