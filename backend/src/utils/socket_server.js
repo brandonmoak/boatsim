@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import cors from 'cors';
 
-export function configureServer(httpServer, frontendPort) {
+export function configureSocketServer(httpServer, frontendPort) {
   // Configure TCP_NODELAY on the HTTP server
   httpServer.on('connection', (socket) => {
     socket.setNoDelay(true);
