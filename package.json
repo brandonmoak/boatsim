@@ -29,7 +29,8 @@
     "package:mac": "npm run build:all -- --mac",
     "package:linux": "npm run build:all -- --linux",
     "clean": "rimraf node_modules **/node_modules electron/node_modules",
-    "clean:locks": "rimraf node_modules **/node_modules electron/node_modules **/package-lock.json electron/package-lock.json"
+    "clean:locks": "rimraf node_modules **/node_modules electron/node_modules **/package-lock.json electron/package-lock.json",
+    "clean:dist": "rimraf electron/dist"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

@@ -4,8 +4,6 @@
   "description": "Boat Simulator Desktop Application",
   "main": "main.js",
   "type": "module",
-  "private": true,
-  "author": "Brandon Moak",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
