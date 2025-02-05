@@ -15,10 +15,18 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
     "dev:backend": "cross-env $(node scripts/load-env.js) npm run dev --workspace=backend",
     "build": "cross-env $(node scripts/load-env.js) npm run build --workspace=frontend",
-    "test": "npm run test --workspace=frontend",
-    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
+    "build:all": "npm run build && cd electron && npm run build",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend && cd electron && npm install",
     "create-config": "chmod +x scripts/create_boatsim_env.sh && ./scripts/create_boatsim_env.sh",
-    "echo-config": "node scripts/load-env.js"
+    "echo-config": "node scripts/load-env.js",
+    "electron:dev": "cd electron && npm run start",
+    "electron:build": "npm run build && cd electron && npm run build",
+    "electron:pack": "npm run build && cd electron && npm run pack",
+    "electron:install": "cd electron && npm install",
+    "package": "npm run build:all",
+    "package:win": "npm run build:all -- --win",
+    "package:mac": "npm run build:all -- --mac",
+    "package:linux": "npm run build:all -- --linux"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
