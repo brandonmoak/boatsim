@@ -13,20 +13,12 @@ interface BoatMarkerOptions extends BoatState {
   iconSize?: [number, number];
 }
 
-export const createBoatIcon = (rotation: number, size: [number, number] = [32, 32]) => {
+export const createBoatIcon = (heading: number, size: [number, number] = [32, 32]) => {
   return L.divIcon({
-    html: `<div style="transform: rotate(${rotation}deg);">
-            <img 
-              src="/boat_favicon.png" 
-              alt="boat" 
-              style="width: ${size[0]}px; height: ${size[1]}px; display: block; 
-                     filter: contrast(120%) brightness(90%);
-                     -webkit-filter: contrast(120%) brightness(90%);"
-            />
-          </div>`,
     className: 'boat-icon',
+    html: `<img src="/boat_favicon.png" style="width: ${size[0]}px; height: ${size[1]}px; transform: rotate(${heading}deg);" />`,
     iconSize: size,
-    iconAnchor: [size[0]/2, size[1]/2],
+    iconAnchor: [size[0]/2, size[1]/2]
   });
 };
 

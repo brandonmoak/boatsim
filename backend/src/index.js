@@ -5,19 +5,24 @@ import fs from 'fs';
 import { MessageForwarder } from './message_forwarder.js';
 import { configureServer } from './utils/server_config.js';
 import { saveDefaults, getDefaults } from './utils/storage.js';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
 
-// configure the environment 
-const actisensePath = '/dev/serial/by-id/usb-Actisense_NGX-1_4CD81-if00-port0';
-const frontendEnvPath = path.join(process.cwd(), '../frontend/.env');
-const frontendEnv = fs.readFileSync(frontendEnvPath, 'utf8');
-const frontendPort = frontendEnv.match(/PORT=(\d+)/)[1];
-const backendPort = frontendEnv.match(/REACT_APP_BACKEND_PORT=(\d+)/)[1];
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Use environment variables passed from the main process
+const PORT = process.env.REACT_APP_BACKEND_PORT || 5010;
+
+console.log('Backend starting with configuration:');
+console.log('PORT:', PORT);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('ELECTRON:', process.env.ELECTRON);
 
 const app = express();
 const httpServer = createServer(app);
 
 // Configure server and get io instance
-const { corsMiddleware, io } = configureServer(httpServer, frontendPort);
+const { corsMiddleware, io } = configureServer(httpServer, PORT);
 
 // Add middleware
 app.use(corsMiddleware);
@@ -84,7 +89,11 @@ app.post('/api/device/disconnect', (req, res) => {
     }
 });
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 // Start server
-httpServer.listen(backendPort, '0.0.0.0', () => {
-  console.log(`Server running on port ${backendPort}`);
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend server running on port ${PORT}`);
 }); 

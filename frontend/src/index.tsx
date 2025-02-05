@@ -4,12 +4,20 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+console.log('Frontend starting...');
+console.log('Environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    PUBLIC_URL: process.env.PUBLIC_URL,
+    REACT_APP_BACKEND_URL: process.env.REACT_APP_BACKEND_URL,
+    REACT_APP_IS_ELECTRON: process.env.REACT_APP_IS_ELECTRON
+});
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-      <App />
+    <App />
   </React.StrictMode>
 );
 
