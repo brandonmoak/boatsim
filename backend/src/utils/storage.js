@@ -1,12 +1,21 @@
 import path from 'path';
 import fs from 'fs';
+import { STORAGE_DIR } from './paths.js';
 
-// Create storage directory if it doesn't exist
-const currentDir = path.dirname(new URL(import.meta.url).pathname);
-const STORAGE_DIR = path.join(currentDir, '../../../frontend/src/config');
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR);
-}
+const DEFAULT_DEFAULTS = {
+    "127488": {
+      "Speed": 500,
+      "Tilt/Trim": 15,
+      "Boost Pressure": 25,
+      "Instance": 1
+    },
+    "128259": {
+      "Speed Water Referenced": 10,
+      "Speed Water Referenced Type": 2,
+      "Speed Ground Referenced": 10,
+      "Speed Direction": 3
+    }
+  }
 
 export async function saveDefaults(defaults) {
   // Validate the defaults data
@@ -29,7 +38,8 @@ export async function getDefaults() {
   
   // Check if defaults file exists
   if (!fs.existsSync(defaultsPath)) {
-    return {}; // Return empty object if no defaults exist
+    console.log('No defaults file found, using default values');
+    return DEFAULT_DEFAULTS; // Return empty object if no defaults exist
   }
 
   // Read and parse defaults

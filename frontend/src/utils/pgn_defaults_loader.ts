@@ -1,11 +1,11 @@
-import pgnDefaultConfig from '../config/pgn_defaults.json';
-import { PGNDefaults, PGNDefinition } from '../types';
+import { PGNDefaults } from '../types';
+import { pgnApi } from '../services/api';
 
-export function getDefaultPGNArray(): string[] {
-    return Object.keys(pgnDefaultConfig);
+export function getDefaultPGNArray(): Promise<string[]> {
+    return pgnApi.getDefaults().then(defaults => Object.keys(defaults));
 }
 
-export function getDefaultPGNs(): PGNDefaults {
-    return pgnDefaultConfig;
+export function getDefaultPGNs(): Promise<PGNDefaults> {
+    return pgnApi.getDefaults();
 }
 

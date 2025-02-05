@@ -1,15 +1,12 @@
 import express from 'express';
 import { createServer } from 'http';
-import path from 'path';
-import fs from 'fs';
 import { MessageForwarder } from './message_forwarder.js';
 import { configureServer } from './utils/server_config.js';
 import { saveDefaults, getDefaults } from './utils/storage.js';
-import os from 'os';
+import { boatsimEnvPath } from './utils/paths.js';
 import dotenv from 'dotenv';
 
 // Load environment variables from ~/.boatsim/.env
-const boatsimEnvPath = path.join(os.homedir(), '.boatsim', '.env');
 dotenv.config({ path: boatsimEnvPath });
 
 // configure the environment 

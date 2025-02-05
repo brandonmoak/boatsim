@@ -56,6 +56,8 @@ function App() {
       setPGNsToStream(uniquePGNs);
 
       console.log('Waypoints:', loadedWaypoints);
+    }).catch(error => {
+      console.error('Error initializing application:', error);
     });
   }, [initializePGNStore]);
 
