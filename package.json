@@ -6,27 +6,23 @@
   "private": true,
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "electron"
   ],
   "scripts": {
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start": "npm run election:dev",
     "start:frontend": "cross-env $(node scripts/load-env.js) npm run start --workspace=frontend",
     "start:backend": "cross-env $(node scripts/load-env.js) npm run start --workspace=backend",
     "dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
     "dev:backend": "cross-env $(node scripts/load-env.js) npm run dev --workspace=backend",
-    "build": "cross-env $(node scripts/load-env.js) npm run build --workspace=frontend",
-    "build:all": "npm run build && cd electron && npm run build",
-    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend && cd electron && npm install",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend && npm install --workspace=electron",
     "create-config": "chmod +x scripts/create_boatsim_env.sh && ./scripts/create_boatsim_env.sh",
     "echo-config": "node scripts/load-env.js",
-    "electron:dev": "cd electron && npm run start",
-    "electron:build": "npm run build && cd electron && npm run build",
-    "electron:pack": "npm run build && cd electron && npm run pack",
-    "electron:install": "cd electron && npm install",
-    "package": "npm run build:all",
-    "package:win": "npm run build:all -- --win",
-    "package:mac": "npm run build:all -- --mac",
-    "package:linux": "npm run build:all -- --linux"
+    "electron:dev": "npm run start --workspace=electron",
+    "electron:build": "npm run build && npm run make --workspace=electron",
+    "electron:install": "npm install --workspace=electron",
+    "clean": "rimraf node_modules **/node_modules electron/node_modules",
+    "clean:locks": "rimraf node_modules **/node_modules electron/node_modules **/package-lock.json electron/package-lock.json",
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
