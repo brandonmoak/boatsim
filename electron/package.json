@@ -1,0 +1,54 @@
+{
+  "name": "boatsim-desktop",
+  "version": "1.0.0",
+  "description": "Boat Simulator Desktop Application",
+  "main": "main.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.boatsim.desktop",
+    "icon": "../frontend/public/boat_favicon.png",
+    "files": [
+      "main.js",
+      "preload.js",
+      "../frontend/build/**/*",
+      "../frontend/public/**/*",
+      "../backend/**/*",
+      "!../backend/node_modules/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/.bin"
+    ],
+    "directories": {
+      "buildResources": "resources"
+    },
+    "extraResources": [
+      {
+        "from": "../frontend/build",
+        "to": "frontend"
+      },
+      {
+        "from": "../frontend/public",
+        "to": "frontend/public"
+      },
+      {
+        "from": "../backend",
+        "to": "backend"
+      }
+    ]
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "dotenv-expand": "^11.0.1",
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}

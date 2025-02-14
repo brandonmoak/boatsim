@@ -1,0 +1,41 @@
+{
+  "name": "boatsim",
+  "version": "1.0.0",
+  "description": "Boat simulator with NMEA 2000 support",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "electron"
+  ],
+  "scripts": {
+    "start": "npm run electron:dev",
+    "start:frontend": "cross-env $(node scripts/load-env.js) npm run start --workspace=frontend",
+    "start:backend": "cross-env $(node scripts/load-env.js) npm run start --workspace=backend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
+    "dev:backend": "cross-env $(node scripts/load-env.js) npm run dev --workspace=backend",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend && npm install --workspace=electron",
+    "create-config": "chmod +x scripts/create_boatsim_env.sh && ./scripts/create_boatsim_env.sh",
+    "echo-config": "node scripts/load-env.js",
+    "electron:dev": "npm run start --workspace=electron",
+    "electron:build": "npm run build && npm run make --workspace=electron",
+    "electron:install": "npm install --workspace=electron",
+    "clean": "rimraf node_modules **/node_modules electron/node_modules",
+    "clean:locks": "rimraf node_modules **/node_modules electron/node_modules **/package-lock.json electron/package-lock.json"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
+    "dotenv-expand": "^11.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "all": "^0.0.0"
+  }
+}
