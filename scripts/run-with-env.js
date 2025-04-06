@@ -14,14 +14,12 @@ try {
   
   // Parse the environment variables
   const envVars = {};
-  const envLines = envOutput.split('\n');
   
-  for (const line of envLines) {
-    // Skip empty lines
-    if (!line.trim()) continue;
-    
-    // Handle export statements (bash style)
-    const match = line.match(/^(?:export\s+)?([A-Za-z0-9_]+)=(.*)$/);
+  // Split by spaces that aren't within quotes
+  const envPairs = envOutput.match(/(?:[^\s"']+|["'][^"']*["'])+/g) || [];
+  
+  for (const pair of envPairs) {
+    const match = pair.match(/^(?:export\s+)?([A-Za-z0-9_]+)=(.*)$/);
     if (match) {
       const [, key, value] = match;
       // Remove quotes if present
@@ -29,6 +27,12 @@ try {
       envVars[key] = cleanValue;
     }
   }
+  
+  // Print the environment variables being set
+  console.log('Setting environment variables:');
+  Object.entries(envVars).forEach(([key, value]) => {
+    console.log(`  ${key}=${value}`);
+  });
   
   // Get the command to run from command line arguments
   const args = process.argv.slice(2);
@@ -42,7 +46,7 @@ try {
   const env = { ...process.env, ...envVars };
   
   // Log the command being executed
-  console.log(`Executing: ${args.join(' ')}`);
+  console.log(`\nExecuting: ${args.join(' ')}`);
   
   // Spawn the process with the combined environment
   const child = spawn(args[0], args.slice(1), {
