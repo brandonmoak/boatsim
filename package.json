@@ -11,10 +11,10 @@
   ],
   "scripts": {
     "start": "npm run electron:dev",
-    "start:frontend": "cross-env $(node scripts/load-env.js) npm run start --workspace=frontend",
-    "start:backend": "cross-env $(node scripts/load-env.js) npm run start --workspace=backend",
+    "start:frontend": "node scripts/run-with-env.js npm run start --workspace=frontend",
+    "start:backend": "node scripts/run-with-env.js npm run start --workspace=backend",
     "dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
-    "dev:backend": "cross-env $(node scripts/load-env.js) npm run dev --workspace=backend",
+    "dev:backend": "node scripts/run-with-env.js npm run dev --workspace=backend",
     "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend && npm install --workspace=electron",
     "create-config": "chmod +x scripts/create_boatsim_env.sh && ./scripts/create_boatsim_env.sh",
     "echo-config": "node scripts/load-env.js",
